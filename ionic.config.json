@@ -1,0 +1,6 @@
+{
+  "name": "expense-tracker",
+  "integrations": {},
+  "type": "angular",
+  "defaultProject": "app"
+}
