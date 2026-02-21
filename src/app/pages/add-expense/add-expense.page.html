@@ -1,0 +1,102 @@
+<ion-content class="add-expense-content">
+  <!-- Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="cancel()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <div class="header-text">
+      <h1>{{ isEditMode ? 'Edit Expense' : 'Add Expense' }}</h1>
+      <p>{{ isEditMode ? 'Update expense details' : 'Record a new expense' }}</p>
+    </div>
+    <div class="header-icon">
+      <ion-icon name="receipt-outline"></ion-icon>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()">
+
+      <!-- Title -->
+      <div class="form-group">
+        <label class="form-label">
+          <ion-icon name="text-outline"></ion-icon>
+          Expense Title *
+        </label>
+        <div class="input-wrapper" [class.error]="getFieldError('title')">
+          <input formControlName="title" type="text" placeholder="e.g. Lunch at McDonald's" class="form-input" />
+        </div>
+        <span class="error-text" *ngIf="getFieldError('title')">{{ getFieldError('title') }}</span>
+      </div>
+
+      <!-- Amount -->
+      <div class="form-group">
+        <label class="form-label">
+          <ion-icon name="cash-outline"></ion-icon>
+          Amount (PKR) *
+        </label>
+        <div class="input-wrapper amount-wrapper" [class.error]="getFieldError('amount')">
+          <span class="currency-prefix">PKR</span>
+          <input formControlName="amount" type="number" placeholder="0.00" step="0.01" min="0" class="form-input" />
+        </div>
+        <span class="error-text" *ngIf="getFieldError('amount')">{{ getFieldError('amount') }}</span>
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label class="form-label">
+          <ion-icon name="grid-outline"></ion-icon>
+          Category *
+        </label>
+        <div class="category-grid">
+          <div *ngFor="let cat of categories"
+          class="cat-option"
+          [class.selected]="expenseForm.get('categoryId')?.value === cat.id"
+          [style.--cat-color]="cat.color"
+          (click)="selectCategory(cat.id!)">
+       <div class="cat-icon-wrap">
+         <ion-icon [name]="cat.icon"></ion-icon>
+       </div>
+       <span>{{ cat.name }}</span>
+     </div>
+        </div>
+        <span class="error-text" *ngIf="expenseForm.get('categoryId')?.invalid && expenseForm.get('categoryId')?.touched">Please select a category</span>
+      </div>
+
+      <!-- Date -->
+      <div class="form-group">
+        <label class="form-label">
+          <ion-icon name="calendar-outline"></ion-icon>
+          Date *
+        </label>
+        <div class="input-wrapper" [class.error]="getFieldError('date')">
+          <input formControlName="date" type="date" class="form-input" [max]="today" />
+        </div>
+        <span class="error-text" *ngIf="getFieldError('date')">{{ getFieldError('date') }}</span>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label class="form-label">
+          <ion-icon name="document-text-outline"></ion-icon>
+          Notes (Optional)
+        </label>
+        <div class="input-wrapper">
+          <textarea formControlName="notes" placeholder="Add any additional notes..." class="form-textarea" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">
+          <ion-icon name="close-outline"></ion-icon>
+          Cancel
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="expenseForm.invalid">
+          <ion-icon [name]="isEditMode ? 'checkmark-outline' : 'add-circle-outline'"></ion-icon>
+          {{ isEditMode ? 'Update Expense' : 'Add Expense' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</ion-content>

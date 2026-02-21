@@ -1,0 +1,87 @@
+import { Component, OnInit } from '@angular/core';
+import { AlertController, ToastController } from '@ionic/angular';
+import { AuthService } from '../../services/auth.service';
+import { ExpenseService } from '../../services/expense.service';
+import { User, Expense } from '../../models/models';
+
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.page.html',
+  styleUrls: ['./profile.page.scss']
+})
+export class ProfilePage implements OnInit {
+  user: User | null = null;
+  totalExpenses = 0;
+  totalAmount = 0;
+  thisMonthAmount = 0;
+  avgPerDay = 0;
+
+  constructor(
+    private authService: AuthService,
+    private expenseService: ExpenseService,
+    private alertCtrl: AlertController,
+    private toastCtrl: ToastController
+  ) { }
+
+  ngOnInit() {
+    this.authService.user$.subscribe(user => {
+      this.user = user;
+      if (user) {
+        this.expenseService.getExpenses(user.uid).subscribe(expenses => {
+          this.calculateStats(expenses);
+        });
+      }
+    });
+  }
+
+  calculateStats(expenses: Expense[]) {
+    this.totalExpenses = expenses.length;
+    this.totalAmount = this.expenseService.getTotalAmount(expenses);
+
+    const today = new Date();
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthExpenses = expenses.filter(e => new Date(e.date) >= monthStart);
+    this.thisMonthAmount = this.expenseService.getTotalAmount(monthExpenses);
+
+    if (expenses.length > 0) {
+      const dates = expenses.map(e => new Date(e.date).getTime());
+      const minDate = new Date(Math.min(...dates));
+      const daysDiff = Math.max(1, Math.ceil((today.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24)));
+      this.avgPerDay = this.totalAmount / daysDiff;
+    }
+  }
+
+  async logout() {
+    const alert = await this.alertCtrl.create({
+      header: 'Logout',
+      message: 'Are you sure you want to sign out?',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        { text: 'Logout', role: 'destructive', handler: () => this.authService.logout() }
+      ]
+    });
+    await alert.present();
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(amount);
+  }
+
+  get memberSince(): string {
+    if (!this.user?.createdAt) return '';
+
+    // Check if createdAt is a Firestore timestamp object
+    const date =
+      // If it's a JS Date already
+      this.user.createdAt instanceof Date
+        ? this.user.createdAt
+        : // If it's Firestore timestamp object {seconds, nanoseconds}
+        new Date((this.user.createdAt as any).seconds * 1000);
+
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  get initials(): string {
+    return `${this.user?.firstName?.charAt(0) || ''}${this.user?.lastName?.charAt(0) || ''}`;
+  }
+}

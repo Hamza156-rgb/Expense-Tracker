@@ -1,0 +1,80 @@
+<ion-content class="profile-content">
+  <!-- Header -->
+  <div class="profile-header">
+    <div class="avatar-large">{{ initials }}</div>
+    <h2>{{ user?.firstName }} {{ user?.lastName }}</h2>
+    <p>{{ user?.email }}</p>
+    <span class="member-since" *ngIf="memberSince">Member since {{ memberSince }}</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-container">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span class="stat-num">{{ totalExpenses }}</span>
+        <span class="stat-lbl">Total Expenses</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <span class="stat-num">{{ formatCurrency(totalAmount) }}</span>
+        <span class="stat-lbl">Total Spent</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span class="stat-num">{{ formatCurrency(thisMonthAmount) }}</span>
+        <span class="stat-lbl">This Month</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Average Spend -->
+  <div class="avg-card">
+    <div class="avg-icon">
+      <ion-icon name="trending-up-outline"></ion-icon>
+    </div>
+    <div class="avg-info">
+      <p class="avg-label">Average Daily Spend</p>
+      <h3 class="avg-value">{{ formatCurrency(avgPerDay) }}</h3>
+    </div>
+  </div>
+
+  <!-- Account Info -->
+  <div class="section-card">
+    <h3 class="section-title">Account Information</h3>
+
+    <div class="info-row">
+      <div class="info-icon-box">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <div class="info-content">
+        <span class="info-label">Full Name</span>
+        <span class="info-value">{{ user?.firstName }} {{ user?.lastName }}</span>
+      </div>
+    </div>
+
+    <div class="info-divider"></div>
+
+    <div class="info-row">
+      <div class="info-icon-box">
+        <ion-icon name="mail-outline"></ion-icon>
+      </div>
+      <div class="info-content">
+        <span class="info-label">Email Address</span>
+        <span class="info-value">{{ user?.email }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Button -->
+  <div class="logout-section">
+    <button class="logout-btn" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      Sign Out
+    </button>
+  </div>
+
+  <div style="height: 30px;"></div>
+</ion-content>

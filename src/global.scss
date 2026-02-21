@@ -1,0 +1,33 @@
+@import "~@ionic/angular/css/core.css";
+@import "~@ionic/angular/css/normalize.css";
+@import "~@ionic/angular/css/structure.css";
+@import "~@ionic/angular/css/typography.css";
+@import "~@ionic/angular/css/display.css";
+@import "~@ionic/angular/css/padding.css";
+@import "~@ionic/angular/css/float-elements.css";
+@import "~@ionic/angular/css/text-alignment.css";
+@import "~@ionic/angular/css/text-transformation.css";
+@import "~@ionic/angular/css/flex-utils.css";
+
+* {
+  box-sizing: border-box;
+}
+
+ion-tab-bar {
+  --background: #ffffff;
+  border-top: 1px solid #e8ecf0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding-bottom: env(safe-area-inset-bottom);
+  height: 60px;
+}
+
+ion-tab-button {
+  --color: #94a3b8;
+  --color-selected: #667eea;
+}
+
+ion-loading {
+  --background: rgba(255, 255, 255, 0.95);
+  --spinner-color: #667eea;
+  --backdrop-opacity: 0.4;
+}

@@ -1,0 +1,153 @@
+
+<ion-header translucent="true">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="user-row">
+        <div class="avatar">{{ initials }}</div>
+        <div class="user-text">
+          <div class="greet">Hello,</div>
+          <div class="uname">{{ (user?.firstName || '') + ' ' + (user?.lastName || '') }}</div>
+        </div>
+      </div>
+      <div class="hdr-actions">
+        <button type="button" class="hbtn" (click)="goToCategories()">
+          <ion-icon name="grid-outline"></ion-icon>
+        </button>
+        <button type="button" class="hbtn hbtn-red" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-main">
+        <div class="s-label">{{ filterActive ? 'Filtered' : 'All Time' }}</div>
+        <div class="s-big">{{ formatCurrency(totalAmount) }}</div>
+        <div class="s-sub">{{ filteredExpenses.length }} expense(s)</div>
+      </div>
+      <div class="stat-side">
+        <div class="stat-sm">
+          <div class="s-label">Today</div>
+          <div class="s-med">{{ formatCurrency(todayAmount) }}</div>
+        </div>
+        <div class="stat-sm">
+          <div class="s-label">This Month</div>
+          <div class="s-med">{{ formatCurrency(monthAmount) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+
+
+<ion-content fullscreen="true">
+  <!-- FILTER TOOLBAR -->
+  <div class="tbar">
+    <button type="button" class="tbtn" [class.tbtn-on]="showFilterPanel" (click)="showFilterPanel = !showFilterPanel">
+      <ion-icon name="funnel-outline"></ion-icon>
+      Filter
+      <span class="badge" *ngIf="filterActive">{{ selectedCategoryIds.length + (startDateStr ? 1 : 0) + (endDateStr ? 1 : 0) }}</span>
+    </button>
+    <button type="button" class="tbtn-clear" *ngIf="filterActive" (click)="clearFilters()">
+      <ion-icon name="close-outline"></ion-icon>
+      Clear
+    </button>
+    <button type="button" class="tbtn-pdf" (click)="downloadPDF()">
+      <ion-icon name="download-outline"></ion-icon>
+      Export
+    </button>
+  </div>
+
+  <!-- FILTER PANEL -->
+  <div class="fpanel" *ngIf="showFilterPanel">
+    <div class="fp-block">
+      <div class="fp-title">Categories</div>
+      <div class="fp-chips">
+        <button
+          type="button"
+          *ngFor="let cat of categories"
+          class="chip"
+          [class.chip-on]="isCategorySelected(cat.id!)"
+          [style.--cc]="cat.color"
+          (click)="toggleCategoryFilter(cat.id!)">
+          <ion-icon [name]="cat.icon"></ion-icon>
+          {{ cat.name }}
+        </button>
+      </div>
+    </div>
+    <div class="fp-block">
+      <div class="fp-title">Date Range</div>
+      <div class="fp-dates">
+        <div class="fp-date-col">
+          <label>From</label>
+          <input type="date" [(ngModel)]="startDateStr" (ngModelChange)="applyFilter()" />
+        </div>
+        <span class="fp-dash">—</span>
+        <div class="fp-date-col">
+          <label>To</label>
+          <input type="date" [(ngModel)]="endDateStr" (ngModelChange)="applyFilter()" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST HEADER -->
+  <div class="lhdr">
+    <span class="lhdr-title">{{ filterActive ? 'Filtered Expenses' : 'Recent Expenses' }}</span>
+    <span class="lhdr-count">{{ filteredExpenses.length }}</span>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty" *ngIf="filteredExpenses.length === 0">
+    <ion-icon name="receipt-outline"></ion-icon>
+    <p>{{ filterActive ? 'No results. Try clearing filters.' : 'No expenses yet. Tap + to add one.' }}</p>
+  </div>
+
+  <!-- EXPENSE LIST -->
+  <div class="elist">
+    <div class="ecard" *ngFor="let e of filteredExpenses">
+      <div class="eico"
+           [style.background]="getCategoryColor(e.categoryId) + '22'"
+           [style.color]="getCategoryColor(e.categoryId)">
+        <ion-icon [name]="getCategoryIcon(e.categoryId)"></ion-icon>
+      </div>
+      <div class="emid">
+        <div class="etitle">{{ e.title }}</div>
+        <div class="emeta">
+          <span class="ecat"
+            [style.background]="getCategoryColor(e.categoryId) + '20'"
+            [style.color]="getCategoryColor(e.categoryId)">
+            {{ getCategoryName(e.categoryId) }}
+          </span>
+          <span class="edate">{{ formatDate(e.date) }}</span>
+        </div>
+        <div class="enote" *ngIf="e.notes">{{ e.notes }}</div>
+      </div>
+      <div class="eright">
+        <div class="eamt">{{ formatCurrency(e.amount) }}</div>
+        <div class="ebtns">
+          <button type="button" class="ebtn ebtn-edit" (click)="editExpense(e)">
+            <ion-icon name="pencil-outline"></ion-icon>
+          </button>
+          <button type="button" class="ebtn ebtn-del" (click)="deleteExpense(e)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+<!-- <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="addExpense()"
+    style="--background: linear-gradient(135deg,#667eea,#764ba2); --box-shadow: 0 6px 20px rgba(102,126,234,.5);">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab> -->
+
+
+</ion-content>

@@ -1,0 +1,85 @@
+<ion-content class="signup-content">
+  <div class="auth-container">
+    <!-- Header Section -->
+    <div class="auth-header">
+      <div class="logo-circle">
+        <ion-icon name="wallet"></ion-icon>
+      </div>
+      <h1>Create Account</h1>
+      <p>Start tracking your expenses today</p>
+    </div>
+
+    <!-- Signup Form -->
+    <div class="auth-card">
+      <form [formGroup]="signupForm" (ngSubmit)="onSignup()">
+
+        <div class="form-row">
+          <!-- First Name -->
+          <div class="form-group half">
+            <label class="form-label">First Name</label>
+            <div class="input-wrapper" [class.error]="getFieldError('firstName')">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <input formControlName="firstName" type="text" placeholder="John" class="form-input" />
+            </div>
+            <span class="error-text" *ngIf="getFieldError('firstName')">{{ getFieldError('firstName') }}</span>
+          </div>
+
+          <!-- Last Name -->
+          <div class="form-group half">
+            <label class="form-label">Last Name</label>
+            <div class="input-wrapper" [class.error]="getFieldError('lastName')">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <input formControlName="lastName" type="text" placeholder="Doe" class="form-input" />
+            </div>
+            <span class="error-text" *ngIf="getFieldError('lastName')">{{ getFieldError('lastName') }}</span>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-wrapper" [class.error]="getFieldError('email')">
+            <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+            <input formControlName="email" type="email" placeholder="john@example.com" class="form-input" />
+          </div>
+          <span class="error-text" *ngIf="getFieldError('email')">{{ getFieldError('email') }}</span>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper" [class.error]="getFieldError('password')">
+            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+            <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="Min. 6 characters" class="form-input" />
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" class="toggle-icon" (click)="showPassword = !showPassword"></ion-icon>
+          </div>
+          <span class="error-text" *ngIf="getFieldError('password')">{{ getFieldError('password') }}</span>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="input-wrapper" [class.error]="signupForm.errors?.['passwordMismatch'] && signupForm.get('confirmPassword')?.touched">
+            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+            <input formControlName="confirmPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Re-enter password" class="form-input" />
+          </div>
+          <span class="error-text" *ngIf="signupForm.errors?.['passwordMismatch'] && signupForm.get('confirmPassword')?.touched">Passwords do not match</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary" [disabled]="signupForm.invalid">
+          <ion-icon name="person-add-outline"></ion-icon>
+          Create Account
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Login Link -->
+    <div class="auth-footer">
+      <p>Already have an account?
+        <span class="link-text" (click)="goToLogin()">Sign In</span>
+      </p>
+    </div>
+  </div>
+</ion-content>

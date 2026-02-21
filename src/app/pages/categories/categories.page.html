@@ -1,0 +1,54 @@
+<ion-content class="categories-content">
+  <!-- Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <div class="header-text">
+      <h1>Categories</h1>
+      <p>Manage expense categories</p>
+    </div>
+    <button class="add-btn" (click)="addCategory()">
+      <ion-icon name="add"></ion-icon>
+    </button>
+  </div>
+
+  <div class="content-container">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="categories.length === 0">
+      <ion-icon name="grid-outline"></ion-icon>
+      <h3>No Categories</h3>
+      <p>Create categories to organize expenses</p>
+      <button class="btn-create" (click)="addCategory()">Create Category</button>
+    </div>
+
+    <!-- Categories List -->
+    <div class="category-list">
+      <div class="category-item" *ngFor="let cat of categories">
+        <div class="cat-icon-box" [style.background]="cat.color + '20'" [style.color]="cat.color">
+          <ion-icon [name]="cat.icon"></ion-icon>
+        </div>
+
+        <div class="cat-info">
+          <h4>{{ cat.name }}</h4>
+          <span class="cat-badge" *ngIf="cat.isDefault">Default</span>
+        </div>
+
+        <div class="cat-actions">
+          <button class="action-btn edit" (click)="editCategory(cat)">
+            <ion-icon name="pencil-outline"></ion-icon>
+          </button>
+          <button class="action-btn delete" (click)="deleteCategory(cat)" [disabled]="cat.isDefault">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Note -->
+    <div class="info-note" *ngIf="categories.length > 0">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Default categories are provided by the app and cannot be deleted.</p>
+    </div>
+  </div>
+</ion-content>

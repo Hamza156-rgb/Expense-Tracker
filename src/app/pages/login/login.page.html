@@ -1,0 +1,55 @@
+<ion-content class="login-content">
+  <div class="auth-container">
+    
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="logo-circle">
+        <ion-icon name="wallet"></ion-icon>
+      </div>
+      <h1>Welcome Back!</h1>
+      <p>Sign in to your expense tracker</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="auth-card">
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-wrapper" [class.error]="getFieldError('email')">
+            <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+            <input formControlName="email" type="email" placeholder="Enter your email" class="form-input" />
+          </div>
+          <span class="error-text" *ngIf="getFieldError('email')">{{ getFieldError('email') }}</span>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper" [class.error]="getFieldError('password')">
+            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+            <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="Enter your password" class="form-input" />
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" class="toggle-icon" (click)="showPassword = !showPassword"></ion-icon>
+          </div>
+          <span class="error-text" *ngIf="getFieldError('password')">{{ getFieldError('password') }}</span>
+        </div>
+
+        <!-- Login Button -->
+        <button type="submit" class="btn-primary" [disabled]="loginForm.invalid">
+          <ion-icon name="log-in-outline"></ion-icon>
+          Sign In
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Signup Link -->
+    <div class="auth-footer">
+      <p>Don't have an account?
+        <span class="link-text" (click)="goToSignup()">Create Account</span>
+      </p>
+    </div>
+
+  </div>
+</ion-content>
