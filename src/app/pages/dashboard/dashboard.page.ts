@@ -174,29 +174,26 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.router.navigate(['/tabs/add-expense']);
   }
 
-  async downloadPDF() {
-    if (this.filteredExpenses.length === 0) {
-      this.showToast('No expenses to export', 'warning');
-      return;
-    }
-    try {
-      const expensesWithCat = this.filteredExpenses.map(e => ({
-        ...e,
-        categoryName: this.getCategoryName(e.categoryId),
-        categoryIcon: this.getCategoryIcon(e.categoryId),
-        categoryColor: this.getCategoryColor(e.categoryId)
-      }));
-      const filterUsed: ExpenseFilter = {
-        categoryIds: this.selectedCategoryIds.length > 0 ? this.selectedCategoryIds : undefined,
-        startDate: this.startDateStr ? new Date(this.startDateStr) : undefined,
-        endDate: this.endDateStr ? new Date(this.endDateStr) : undefined
-      };
-      await this.exportService.exportToPDF(expensesWithCat, filterUsed, `${this.user?.firstName || ''} ${this.user?.lastName || ''}`);
-      this.showToast('PDF downloaded!', 'success');
-    } catch (err) {
-      this.showToast('Export failed', 'danger');
-    }
+ async downloadPDF() {
+  if (this.filteredExpenses.length === 0) {
+    this.showToast('No expenses to export', 'warning');
+    return;
   }
+
+  try {
+    await this.exportService.exportToPDF(
+      this.filteredExpenses,
+      {},
+      `${this.user?.firstName || ''} ${this.user?.lastName || ''}`
+    );
+
+    this.showToast('PDF exported successfully!', 'success');
+
+  } catch (err) {
+    console.error(err);
+    this.showToast('Export failed', 'danger');
+  }
+}
 
   async logout() {
     const alert = await this.alertCtrl.create({
