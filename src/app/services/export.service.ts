@@ -7,7 +7,7 @@ import { Capacitor } from '@capacitor/core'
 @Injectable({ providedIn: 'root' })
 export class ExportService {
 
- async exportToPDF(expenses: any[], filter: any, userName: string): Promise<void> {
+  async exportToPDF(expenses: any[], filter: any, userName: string): Promise<void> {
 
     const jsPDF = (await import('jspdf')).default;
     await import('jspdf-autotable');

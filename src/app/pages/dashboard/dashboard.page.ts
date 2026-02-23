@@ -39,7 +39,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     const userSub = this.authService.user$.subscribe(user => {
@@ -174,26 +174,26 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.router.navigate(['/tabs/add-expense']);
   }
 
- async downloadPDF() {
-  if (this.filteredExpenses.length === 0) {
-    this.showToast('No expenses to export', 'warning');
-    return;
+  async downloadPDF() {
+    if (this.filteredExpenses.length === 0) {
+      this.showToast('No expenses to export', 'warning');
+      return;
+    }
+
+    try {
+      await this.exportService.exportToPDF(
+        this.filteredExpenses,
+        {},
+        `${this.user?.firstName || ''} ${this.user?.lastName || ''}`
+      );
+
+      this.showToast('PDF exported successfully!', 'success');
+
+    } catch (err) {
+      console.error(err);
+      this.showToast('Export failed', 'danger');
+    }
   }
-
-  try {
-    await this.exportService.exportToPDF(
-      this.filteredExpenses,
-      {},
-      `${this.user?.firstName || ''} ${this.user?.lastName || ''}`
-    );
-
-    this.showToast('PDF exported successfully!', 'success');
-
-  } catch (err) {
-    console.error(err);
-    this.showToast('Export failed', 'danger');
-  }
-}
 
   async logout() {
     const alert = await this.alertCtrl.create({
