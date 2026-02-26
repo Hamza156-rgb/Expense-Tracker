@@ -9,10 +9,23 @@ export class ExportService {
 
   async exportToPDF(expenses: any[], filter: any, userName: string): Promise<void> {
 
-    const jsPDF = (await import('jspdf')).default;
-    await import('jspdf-autotable');
+    const errMsg = (e: any) =>
+      (e && (e.message || e.reason || e.error || e.toString?.())) || 'Unknown error';
 
-    const doc = new jsPDF();
+    let jsPDF: any;
+    try {
+      jsPDF = (await import('jspdf')).default;
+      await import('jspdf-autotable');
+    } catch (e) {
+      throw new Error(`Failed to load PDF libraries: ${errMsg(e)}`);
+    }
+
+    let doc: any;
+    try {
+      doc = new jsPDF();
+    } catch (e) {
+      throw new Error(`Failed to initialize PDF: ${errMsg(e)}`);
+    }
 
     // ===== HEADER =====
     doc.setFillColor(102, 126, 234);
@@ -102,21 +115,49 @@ export class ExportService {
     // ===== ANDROID / IOS =====
 
     // Convert PDF to base64
-    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    let pdfBase64 = '';
+    try {
+      const dataUri = doc.output('datauristring');
+      pdfBase64 = (dataUri || '').split(',')[1] || '';
+      if (!pdfBase64) {
+        throw new Error('PDF base64 was empty');
+      }
+    } catch (e) {
+      throw new Error(`Failed to encode PDF: ${errMsg(e)}`);
+    }
 
     // Save file
-    const savedFile = await Filesystem.writeFile({
-      path: fileName,
-      data: pdfBase64,
-      directory: Directory.Documents,
-    });
+    let savedFile: { uri: string };
+    try {
+      savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: pdfBase64,
+        directory: Directory.Documents,
+      });
+    } catch (e1) {
+      // Some Android devices/versions can fail writing to Documents; Cache is a safe fallback.
+      try {
+        savedFile = await Filesystem.writeFile({
+          path: fileName,
+          data: pdfBase64,
+          directory: Directory.Cache,
+        });
+      } catch (e2) {
+        throw new Error(`Failed to save PDF: ${errMsg(e1)} | ${errMsg(e2)}`);
+      }
+    }
 
     // Open Share Sheet (Best UX)
-    await Share.share({
-      title: 'Expense Report',
-      text: 'Here is your expense report.',
-      url: savedFile.uri,
-    });
+    try {
+      await Share.share({
+        title: 'Expense Report',
+        text: 'Here is your expense report.',
+        url: savedFile.uri,
+        dialogTitle: 'Share Expense Report',
+      });
+    } catch (e) {
+      throw new Error(`Failed to open share sheet: ${errMsg(e)} (uri=${savedFile?.uri || 'n/a'})`);
+    }
 
   }
 }

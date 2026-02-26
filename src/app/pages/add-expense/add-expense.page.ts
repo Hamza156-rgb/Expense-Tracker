@@ -30,7 +30,11 @@ export class AddExpensePage implements OnInit {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController
   ) {
-    this.today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    this.today = `${year}-${month}-${day}`;
     this.expenseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(2)]],
       amount: ['', [Validators.required, Validators.min(0.01)]],
@@ -71,7 +75,11 @@ export class AddExpensePage implements OnInit {
     this.expenseService.getExpenses(this.userId).subscribe(expenses => {
       const expense = expenses.find(e => e.id === id);
       if (expense) {
-        const dateStr = new Date(expense.date).toISOString().split('T')[0];
+        const d = new Date(expense.date);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${day}`;
         this.expenseForm.patchValue({
           title: expense.title,
           amount: expense.amount,
