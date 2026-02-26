@@ -1,0 +1,14 @@
+.auth-loading {
+  --background: var(--ion-background-color, #fff);
+}
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: var(--ion-text-color, #111);
+}
+
