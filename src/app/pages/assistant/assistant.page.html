@@ -1,0 +1,31 @@
+<ion-content class="assistant-content">
+  <div class="assistant-header">
+    <h1>AI Assistant</h1>
+    <p>Ask questions about your spending and budget planning.</p>
+  </div>
+
+  <div class="quick-prompts" *ngIf="messages.length <= 1">
+    <button type="button" class="quick-btn" *ngFor="let item of quickPrompts" (click)="useQuickPrompt(item)">
+      {{ item }}
+    </button>
+  </div>
+
+  <div class="chat-list">
+    <div class="msg" *ngFor="let msg of messages" [class.msg-user]="msg.role === 'user'" [class.msg-ai]="msg.role === 'assistant'">
+      {{ msg.text }}
+    </div>
+
+    <div class="msg msg-ai" *ngIf="isSending">Thinking...</div>
+  </div>
+
+  <div class="input-wrap">
+    <textarea
+      [(ngModel)]="prompt"
+      class="chat-input"
+      rows="2"
+      placeholder="Ask: How can I reduce food spending this month?"></textarea>
+    <button type="button" class="send-btn" [disabled]="!prompt.trim() || isSending" (click)="sendMessage()">
+      Send
+    </button>
+  </div>
+</ion-content>

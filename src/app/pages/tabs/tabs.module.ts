@@ -26,6 +26,10 @@ const routes: Routes = [
         loadChildren: () => import('../profile/profile.module').then(m => m.ProfilePageModule)
       },
       {
+        path: 'assistant',
+        loadChildren: () => import('../assistant/assistant.module').then(m => m.AssistantPageModule)
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'

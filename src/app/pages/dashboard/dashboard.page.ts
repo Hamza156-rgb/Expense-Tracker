@@ -384,6 +384,10 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.router.navigate(['/tabs/categories']);
   }
 
+  goToAssistant() {
+    this.router.navigate(['/tabs/assistant']);
+  }
+
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-PK', {
       style: 'currency', currency: 'PKR', minimumFractionDigits: 0
