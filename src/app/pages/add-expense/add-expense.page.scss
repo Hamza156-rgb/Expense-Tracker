@@ -6,10 +6,10 @@
   background:
     radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.2) 0, transparent 36%),
     linear-gradient(140deg, #0f6cbd 0%, #0369a1 55%, #0f766e 100%);
-  padding: 50px 20px 30px;
+  padding: calc(env(safe-area-inset-top) + 12px) 14px 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 
   .back-btn {
     width: 40px;
@@ -27,8 +27,8 @@
 
   .header-text {
     flex: 1;
-    h1 { font-size: 22px; font-weight: 700; color: white; margin: 0 0 3px; }
-    p { font-size: 13px; color: rgba(255,255,255,0.8); margin: 0; }
+    h1 { font-size: 20px; font-weight: 700; color: white; margin: 0 0 2px; }
+    p { font-size: 12px; color: rgba(255,255,255,0.8); margin: 0; }
   }
 
   .header-icon {
@@ -44,7 +44,7 @@
 }
 
 .form-container {
-  padding: 20px 16px;
+  padding: 12px;
 
   form {
     display: flex;
@@ -55,9 +55,9 @@
 
 .form-group {
   background: white;
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 12px;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
@@ -226,7 +226,7 @@
 .form-actions {
   display: flex;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .btn-cancel {
@@ -267,4 +267,19 @@
 
   &:hover:not(:disabled) { transform: translateY(-1px); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+@media (max-height: 760px) {
+  .page-header {
+    padding: calc(env(safe-area-inset-top) + 8px) 12px 12px;
+  }
+
+  .form-container {
+    padding: 10px;
+  }
+
+  .form-group {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
 }

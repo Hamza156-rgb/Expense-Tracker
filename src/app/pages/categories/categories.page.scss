@@ -6,10 +6,10 @@
   background:
     radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.2) 0, transparent 36%),
     linear-gradient(140deg, #0f6cbd 0%, #0369a1 55%, #0f766e 100%);
-  padding: 50px 20px 25px;
+  padding: calc(env(safe-area-inset-top) + 12px) 14px 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 
   .back-btn {
     width: 40px;
@@ -27,8 +27,8 @@
 
   .header-text {
     flex: 1;
-    h1 { font-size: 22px; font-weight: 700; color: white; margin: 0 0 3px; }
-    p { font-size: 13px; color: rgba(255,255,255,0.8); margin: 0; }
+    h1 { font-size: 20px; font-weight: 700; color: white; margin: 0 0 2px; }
+    p { font-size: 12px; color: rgba(255,255,255,0.8); margin: 0; }
   }
 
   .add-btn {
@@ -46,7 +46,7 @@
 }
 
 .content-container {
-  padding: 16px;
+  padding: 12px;
 }
 
 .category-list {
@@ -57,8 +57,8 @@
 
 .category-item {
   background: white;
-  border-radius: 16px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -167,4 +167,14 @@
 
   ion-icon { font-size: 16px; color: var(--ion-color-primary); flex-shrink: 0; margin-top: 1px; }
   p { font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; }
+}
+
+@media (max-height: 760px) {
+  .page-header {
+    padding: calc(env(safe-area-inset-top) + 8px) 12px 12px;
+  }
+
+  .content-container {
+    padding: 10px;
+  }
 }

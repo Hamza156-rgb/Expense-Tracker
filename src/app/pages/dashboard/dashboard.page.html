@@ -12,15 +12,24 @@
         </div>
       </div>
       <div class="hdr-actions">
-        <button type="button" class="hbtn" (click)="goToAssistant()">
-          <ion-icon name="sparkles-outline"></ion-icon>
-        </button>
-        <button type="button" class="hbtn" (click)="goToCategories()">
-          <ion-icon name="grid-outline"></ion-icon>
-        </button>
-        <button type="button" class="hbtn hbtn-red" (click)="logout()">
-          <ion-icon name="log-out-outline"></ion-icon>
-        </button>
+        <div class="hbtn-wrap">
+          <button type="button" class="hbtn" (click)="goToAssistant()" aria-label="Open AI Assistant" title="Open AI Assistant">
+            <ion-icon name="sparkles-outline"></ion-icon>
+          </button>
+          <span class="hbtn-tag">AI</span>
+        </div>
+        <div class="hbtn-wrap">
+          <button type="button" class="hbtn" (click)="goToCategories()" aria-label="Open Categories" title="Open Categories">
+            <ion-icon name="grid-outline"></ion-icon>
+          </button>
+          <span class="hbtn-tag">CAT</span>
+        </div>
+        <div class="hbtn-wrap">
+          <button type="button" class="hbtn hbtn-red" (click)="logout()" aria-label="Logout" title="Logout">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </button>
+          <span class="hbtn-tag hbtn-tag-red">OUT</span>
+        </div>
       </div>
     </div>
 
