@@ -54,6 +54,15 @@ export class AuthService {
     await this.afAuth.sendPasswordResetEmail(email);
   }
 
+  async updatePassword(newPassword: string): Promise<void> {
+    const user = await this.afAuth.currentUser;
+    if (user) {
+      await user.updatePassword(newPassword);
+    } else {
+      throw new Error('No user logged in.');
+    }
+  }
+
   async logout(): Promise<void> {
     await this.afAuth.signOut();
     await this.router.navigate(['/login']);

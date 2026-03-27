@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { User, Expense, WorkspaceScope } from '../../models/models';
+import { ChangePasswordModalComponent } from './change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-profile',
@@ -23,6 +24,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     private authService: AuthService,
     private expenseService: ExpenseService,
     private alertCtrl: AlertController,
+    private modalCtrl: ModalController,
     private toastCtrl: ToastController,
     private router: Router
   ) { }
@@ -74,6 +76,16 @@ export class ProfilePage implements OnInit, OnDestroy {
       ]
     });
     await alert.present();
+  }
+
+  async changePassword() {
+    const modal = await this.modalCtrl.create({
+      component: ChangePasswordModalComponent,
+      cssClass: 'change-password-modal',
+      breakpoints: [0, 0.45],
+      initialBreakpoint: 0.45
+    });
+    await modal.present();
   }
 
   formatCurrency(amount: number): string {
