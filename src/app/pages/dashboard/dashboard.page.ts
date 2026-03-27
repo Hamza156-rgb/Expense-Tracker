@@ -269,7 +269,15 @@ export class DashboardPage implements OnInit, OnDestroy {
     try {
       await this.exportService.exportToPDF(
         this.filteredExpenses,
-        {},
+        {
+          categoryIds: this.selectedCategoryIds.length ? [...this.selectedCategoryIds] : undefined,
+          startDate: this.startDateStr ? new Date(this.startDateStr) : undefined,
+          endDate: this.endDateStr ? new Date(this.endDateStr) : undefined,
+          datePresetLabel: this.getActiveDateFilterLabel(),
+          categoryNames: this.categories
+            .filter(cat => this.selectedCategoryIds.includes(cat.id!))
+            .map(cat => cat.name)
+        },
         `${this.user?.firstName || ''} ${this.user?.lastName || ''}`
       );
 
@@ -321,5 +329,17 @@ export class DashboardPage implements OnInit, OnDestroy {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private getActiveDateFilterLabel(): string {
+    const map: Record<string, string> = {
+      today: 'Today',
+      last7: 'Last 7 Days',
+      thisMonth: 'This Month',
+      lastMonth: 'Last Month',
+      allTime: 'All Time',
+      custom: 'Custom'
+    };
+    return map[this.activeQuickDateFilter] || 'All Time';
   }
 }

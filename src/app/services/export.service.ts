@@ -7,7 +7,11 @@ import { Capacitor } from '@capacitor/core'
 @Injectable({ providedIn: 'root' })
 export class ExportService {
 
-  async exportToPDF(expenses: any[], filter: any, userName: string): Promise<void> {
+  async exportToPDF(
+    expenses: Expense[],
+    filter: ExpenseFilter & { datePresetLabel?: string; categoryNames?: string[] },
+    userName: string
+  ): Promise<void> {
 
     const errMsg = (e: any) =>
       (e && (e.message || e.reason || e.error || e.toString?.())) || 'Unknown error';
@@ -27,64 +31,103 @@ export class ExportService {
       throw new Error(`Failed to initialize PDF: ${errMsg(e)}`);
     }
 
-    // ===== HEADER =====
-    doc.setFillColor(102, 126, 234);
-    doc.rect(0, 0, 210, 35, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Expense Report', 14, 20);
+    const sortedExpenses = [...expenses].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
-    doc.setFontSize(10);
+    // ===== HEADER =====
+    doc.setFillColor(15, 108, 189);
+    doc.rect(0, 0, 210, 32, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Money Map Report', 14, 18);
+
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Generated for: ${userName}`, 14, 29);
+    doc.text(`Generated for: ${userName}`, 14, 26);
     doc.text(
-      `Date: ${new Date().toLocaleDateString()}`,
+      `Generated on: ${new Date().toLocaleDateString()}`,
       210 - 14,
-      29,
+      26,
       { align: 'right' }
     );
 
     // ===== SUMMARY =====
-    const total = expenses.reduce((s, e) => s + e.amount, 0);
+    const total = sortedExpenses.reduce((s, e) => s + e.amount, 0);
+    const average = sortedExpenses.length ? total / sortedExpenses.length : 0;
 
-    doc.setFillColor(240, 244, 248);
-    doc.roundedRect(14, 43, 182, 22, 3, 3, 'F');
+    doc.setFillColor(244, 247, 251);
+    doc.roundedRect(14, 40, 182, 24, 3, 3, 'F');
+    doc.setDrawColor(219, 228, 239);
+    doc.roundedRect(14, 40, 182, 24, 3, 3, 'S');
 
-    doc.setTextColor(30, 41, 59);
+    doc.setTextColor(15, 23, 42);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(
-      `Total Expenses: PKR ${total.toLocaleString()}`,
-      105,
-      51,
-      { align: 'center' }
-    );
+    doc.text(`Total: ${this.formatCurrency(total)}`, 20, 49);
+    doc.text(`Entries: ${sortedExpenses.length}`, 82, 49);
+    doc.text(`Average: ${this.formatCurrency(Math.round(average))}`, 138, 49);
 
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text(
-      `${expenses.length} transaction(s)`,
-      105,
-      58,
-      { align: 'center' }
-    );
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Filters: ${this.getFilterSummary(filter)}`, 20, 57);
 
     // ===== TABLE =====
-    const rows = expenses.map(e => [
+    const rows = sortedExpenses.map(e => [
       new Date(e.date).toLocaleDateString(),
       e.title,
       e.categoryName || 'Uncategorized',
-      e.notes || '-',
-      `PKR ${e.amount.toLocaleString()}`
+      this.formatCurrency(e.amount)
     ]);
 
     (doc as any).autoTable({
-      head: [['Date', 'Title', 'Category', 'Notes', 'Amount']],
+      head: [['Date', 'Title', 'Category', 'Amount']],
       body: rows,
       startY: 70,
-      margin: { left: 14, right: 14 }
+      margin: { left: 14, right: 14 },
+      theme: 'striped',
+      styles: {
+        fontSize: 9,
+        cellPadding: 3
+      },
+      headStyles: {
+        fillColor: [15, 108, 189],
+        textColor: [255, 255, 255]
+      },
+      columnStyles: {
+        3: { halign: 'right' }
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      }
     });
+
+    // ===== CATEGORY BREAKDOWN =====
+    const categoryTotals = this.getCategoryTotals(sortedExpenses);
+    if (categoryTotals.length > 0) {
+      const startY = ((doc as any).lastAutoTable?.finalY || 70) + 10;
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Category Breakdown', 14, startY);
+
+      (doc as any).autoTable({
+        head: [['Category', 'Amount', 'Share']],
+        body: categoryTotals.map(item => [
+          item.category,
+          this.formatCurrency(item.amount),
+          `${Math.round((item.amount / total) * 100)}%`
+        ]),
+        startY: startY + 4,
+        margin: { left: 14, right: 14 },
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255] },
+        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
+        alternateRowStyles: { fillColor: [248, 250, 252] }
+      });
+    }
 
     // ===== FOOTER =====
     const pageCount = (doc as any).internal.getNumberOfPages();
@@ -92,15 +135,17 @@ export class ExportService {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150);
+      doc.setDrawColor(230, 236, 242);
+      doc.line(14, 285, 196, 285);
       doc.text(
-        `Page ${i} of ${pageCount} — Money Map`,
+        `Money Map | Page ${i} of ${pageCount}`,
         105,
         290,
         { align: 'center' }
       );
     }
 
-    const fileName = `expense-report-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `money-map-report-${new Date().toISOString().split('T')[0]}.pdf`;
 
     // ===============================
     // PLATFORM CHECK
@@ -158,6 +203,42 @@ export class ExportService {
     } catch (e) {
       throw new Error(`Failed to open share sheet: ${errMsg(e)} (uri=${savedFile?.uri || 'n/a'})`);
     }
+  }
 
+  private formatCurrency(amount: number): string {
+    return `PKR ${Math.round(amount).toLocaleString()}`;
+  }
+
+  private getFilterSummary(filter: ExpenseFilter & { datePresetLabel?: string; categoryNames?: string[] }): string {
+    const parts: string[] = [];
+
+    if (filter.datePresetLabel && filter.datePresetLabel !== 'All Time') {
+      parts.push(filter.datePresetLabel);
+    } else {
+      if (filter.startDate) parts.push(`From ${new Date(filter.startDate).toLocaleDateString()}`);
+      if (filter.endDate) parts.push(`To ${new Date(filter.endDate).toLocaleDateString()}`);
+    }
+
+    if (filter.categoryNames && filter.categoryNames.length > 0) {
+      parts.push(
+        filter.categoryNames.length <= 2
+          ? `Categories: ${filter.categoryNames.join(', ')}`
+          : `${filter.categoryNames.length} Categories`
+      );
+    }
+
+    return parts.length ? parts.join(' | ') : 'All Time';
+  }
+
+  private getCategoryTotals(expenses: Expense[]): Array<{ category: string; amount: number }> {
+    const totals = new Map<string, number>();
+    expenses.forEach(expense => {
+      const key = expense.categoryName || 'Uncategorized';
+      totals.set(key, (totals.get(key) || 0) + expense.amount);
+    });
+    return Array.from(totals.entries())
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 8);
   }
 }
