@@ -4,13 +4,20 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core'
 
+interface ExportReportMeta {
+  workspaceType?: 'personal' | 'business';
+  workspaceLabel?: string;
+  shopName?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ExportService {
 
   async exportToPDF(
     expenses: Expense[],
     filter: ExpenseFilter & { datePresetLabel?: string; categoryNames?: string[] },
-    userName: string
+    userName: string,
+    meta?: ExportReportMeta
   ): Promise<void> {
 
     const errMsg = (e: any) =>
@@ -46,6 +53,7 @@ export class ExportService {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text(`Generated for: ${userName}`, 14, 26);
+    doc.text(`Workspace: ${this.getWorkspaceSummary(meta)}`, 14, 30);
     doc.text(
       `Generated on: ${new Date().toLocaleDateString()}`,
       210 - 14,
@@ -145,7 +153,7 @@ export class ExportService {
       );
     }
 
-    const fileName = `money-map-report-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `money-map-${this.getWorkspaceFilePart(meta)}-report-${new Date().toISOString().split('T')[0]}.pdf`;
 
     // ===============================
     // PLATFORM CHECK
@@ -195,8 +203,8 @@ export class ExportService {
     // Open Share Sheet (Best UX)
     try {
       await Share.share({
-        title: 'Expense Report',
-        text: 'Here is your expense report.',
+        title: `${this.getWorkspaceShareTitle(meta)} Expense Report`,
+        text: `Here is your ${this.getWorkspaceShareTitle(meta).toLowerCase()} expense report.`,
         url: savedFile.uri,
         dialogTitle: 'Share Expense Report',
       });
@@ -240,5 +248,27 @@ export class ExportService {
       .map(([category, amount]) => ({ category, amount }))
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 8);
+  }
+
+  private getWorkspaceSummary(meta?: ExportReportMeta): string {
+    if (meta?.workspaceType === 'business') {
+      return `Business${meta.shopName ? ` - ${meta.shopName}` : ''}`;
+    }
+    return meta?.workspaceLabel || 'Personal';
+  }
+
+  private getWorkspaceFilePart(meta?: ExportReportMeta): string {
+    if (meta?.workspaceType === 'business') {
+      const shop = (meta.shopName || 'shop')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      return `business-${shop || 'shop'}`;
+    }
+    return 'personal';
+  }
+
+  private getWorkspaceShareTitle(meta?: ExportReportMeta): string {
+    return meta?.workspaceType === 'business' ? 'Business' : 'Personal';
   }
 }

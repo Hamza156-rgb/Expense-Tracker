@@ -5,7 +5,7 @@ import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
-import { Category, Expense } from '../../models/models';
+import { Category, Expense, User, WorkspaceScope } from '../../models/models';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 
@@ -23,6 +23,10 @@ export class AddExpensePage implements OnInit, OnDestroy {
   today: string;
   suggestedCategory: Category | null = null;
   private titleSub?: Subscription;
+  private authSub?: Subscription;
+  private categoriesSub?: Subscription;
+  private loadExpenseSub?: Subscription;
+  private currentUser: User | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -49,14 +53,22 @@ export class AddExpensePage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.authService.getCurrentUser().then(user => {
+    this.authSub = this.authService.user$.subscribe(user => {
+      this.currentUser = user;
+      this.categoriesSub?.unsubscribe();
+      this.loadExpenseSub?.unsubscribe();
+      this.categories = [];
       if (!user) return;
       this.userId = user.uid;
-  
-      this.categoryService.getCategories(user.uid).subscribe(cats => {
+
+      this.categoriesSub = this.categoryService.getCategories(user.uid, this.getWorkspaceScope(user)).subscribe(cats => {
         this.categories = cats; // now correctly typed
         this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
       });
+
+      if (this.isEditMode && this.editId) {
+        this.loadExpense(this.editId);
+      }
     });
 
     const titleControl = this.expenseForm.get('title');
@@ -70,13 +82,15 @@ export class AddExpensePage implements OnInit, OnDestroy {
       if (params['id']) {
         this.editId = params['id'];
         this.isEditMode = true;
-        this.loadExpense(params['id']);
       }
     });
   }
 
   ngOnDestroy(): void {
     this.titleSub?.unsubscribe();
+    this.authSub?.unsubscribe();
+    this.categoriesSub?.unsubscribe();
+    this.loadExpenseSub?.unsubscribe();
   }
   
   selectCategory(catId: string) {
@@ -94,9 +108,11 @@ export class AddExpensePage implements OnInit, OnDestroy {
   }
 
   async loadExpense(id: string) {
+    if (!this.userId || !this.currentUser) return;
     const loading = await this.loadingCtrl.create({ message: 'Loading...' });
     await loading.present();
-    this.expenseService.getExpenses(this.userId).subscribe(expenses => {
+    this.loadExpenseSub?.unsubscribe();
+    this.loadExpenseSub = this.expenseService.getExpenses(this.userId, this.getWorkspaceScope(this.currentUser!)).subscribe(expenses => {
       const expense = expenses.find(e => e.id === id);
       if (expense) {
         const d = new Date(expense.date);
@@ -140,6 +156,8 @@ export class AddExpensePage implements OnInit, OnDestroy {
         date: new Date(date),
         notes: notes.trim(),
         userId: this.userId,
+        workspaceType: this.getWorkspaceScope(this.currentUser).workspaceType,
+        workspaceId: this.getWorkspaceScope(this.currentUser).workspaceId,
         createdAt: new Date()
       };
 
@@ -218,5 +236,23 @@ export class AddExpensePage implements OnInit, OnDestroy {
     }
 
     this.suggestedCategory = null;
+  }
+
+  private getWorkspaceScope(user: User | null): WorkspaceScope {
+    if (user?.accountMode === 'business') {
+      return {
+        workspaceType: 'business',
+        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
+      };
+    }
+    return { workspaceType: 'personal', workspaceId: 'personal' };
+  }
+
+  private toBusinessWorkspaceId(name?: string): string {
+    const slug = (name || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug ? `shop-${slug}` : 'shop-default';
   }
 }

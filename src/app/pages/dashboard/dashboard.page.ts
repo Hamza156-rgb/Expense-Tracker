@@ -6,7 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
 import { ExportService } from '../../services/export.service';
-import { Expense, Category, ExpenseFilter, User } from '../../models/models';
+import { Expense, Category, ExpenseFilter, User, WorkspaceScope } from '../../models/models';
 
 @Component({
   selector: 'app-dashboard',
@@ -43,6 +43,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   monthAmount = 0;
 
   private subs: Subscription[] = [];
+  private dataSub?: Subscription;
 
   constructor(
     private authService: AuthService,
@@ -65,6 +66,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.dataSub?.unsubscribe();
     this.subs.forEach(s => s.unsubscribe());
   }
 
@@ -75,11 +77,26 @@ export class DashboardPage implements OnInit, OnDestroy {
     return ((f[0] || '') + (l[0] || '')).toUpperCase() || '?';
   }
 
+  get activeWorkspaceLabel(): string {
+    if (this.user?.accountMode === 'business') {
+      return `Business • ${this.user.businessName || 'Shop'}`;
+    }
+    return 'Personal Mode';
+  }
+
   loadData(userId: string) {
+    this.dataSub?.unsubscribe();
     this.isLoading = true;
-    const combined = combineLatest([
-      this.expenseService.getExpenses(userId),
-      this.categoryService.getCategories(userId)
+    this.expenses = [];
+    this.filteredExpenses = [];
+    this.categories = [];
+    this.totalAmount = 0;
+    this.todayAmount = 0;
+    this.monthAmount = 0;
+    const scope = this.getWorkspaceScope(this.user);
+    this.dataSub = combineLatest([
+      this.expenseService.getExpenses(userId, scope),
+      this.categoryService.getCategories(userId, scope)
     ]).subscribe(([expenses, categories]) => {
       this.expenses = expenses;
       this.categories = categories;
@@ -87,7 +104,6 @@ export class DashboardPage implements OnInit, OnDestroy {
       this.calculateStats();
       this.isLoading = false;
     });
-    this.subs.push(combined);
   }
 
   applyFilter() {
@@ -357,7 +373,12 @@ export class DashboardPage implements OnInit, OnDestroy {
             .filter(cat => this.selectedCategoryIds.includes(cat.id!))
             .map(cat => cat.name)
         },
-        `${this.user?.firstName || ''} ${this.user?.lastName || ''}`
+        `${this.user?.firstName || ''} ${this.user?.lastName || ''}`,
+        {
+          workspaceType: this.user?.accountMode === 'business' ? 'business' : 'personal',
+          workspaceLabel: this.user?.accountMode === 'business' ? 'Business' : 'Personal',
+          shopName: this.user?.businessName || undefined
+        }
       );
 
       this.showToast('PDF exported successfully!', 'success');
@@ -424,5 +445,23 @@ export class DashboardPage implements OnInit, OnDestroy {
       custom: 'Custom'
     };
     return map[this.activeQuickDateFilter] || 'All Time';
+  }
+
+  private getWorkspaceScope(user: User | null): WorkspaceScope {
+    if (user?.accountMode === 'business') {
+      return {
+        workspaceType: 'business',
+        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
+      };
+    }
+    return { workspaceType: 'personal', workspaceId: 'personal' };
+  }
+
+  private toBusinessWorkspaceId(name?: string): string {
+    const slug = (name || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug ? `shop-${slug}` : 'shop-default';
   }
 }

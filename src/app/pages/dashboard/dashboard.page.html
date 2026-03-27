@@ -9,6 +9,9 @@
         <div class="user-text">
           <div class="greet">Hello,</div>
           <div class="uname">{{ (user?.firstName || '') + ' ' + (user?.lastName || '') }}</div>
+          <div class="mode-pill">
+            {{ activeWorkspaceLabel }}
+          </div>
         </div>
       </div>
       <div class="hdr-actions">

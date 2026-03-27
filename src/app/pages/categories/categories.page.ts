@@ -1,18 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { CategoryService } from '../../services/category.service';
-import { Category } from '../../models/models';
+import { Category, User, WorkspaceScope } from '../../models/models';
 
 @Component({
   selector: 'app-categories',
   templateUrl: './categories.page.html',
   styleUrls: ['./categories.page.scss']
 })
-export class CategoriesPage implements OnInit {
+export class CategoriesPage implements OnInit, OnDestroy {
   categories: Category[] = [];
   userId = '';
+  private user: User | null = null;
+  private authSub?: Subscription;
+  private categoriesSub?: Subscription;
 
   readonly availableIcons = [
     'restaurant', 'car', 'bag-handle', 'game-controller', 'medical',
@@ -35,14 +39,18 @@ export class CategoriesPage implements OnInit {
     private router: Router
   ) {}
 
-  async ngOnInit() {
-    const user = await this.authService.getCurrentUser();
-    if (user) {
+  ngOnInit() {
+    this.authSub = this.authService.user$.subscribe(user => {
+      this.user = user;
+      this.categoriesSub?.unsubscribe();
+      this.categories = [];
+      if (!user) return;
+
       this.userId = user.uid;
-      this.categoryService.getCategories(user.uid).subscribe(cats => {
+      this.categoriesSub = this.categoryService.getCategories(user.uid, this.getWorkspaceScope(user)).subscribe(cats => {
         this.categories = cats;
       });
-    }
+    });
   }
 
   async addCategory() {
@@ -86,6 +94,8 @@ export class CategoriesPage implements OnInit {
                   icon: this.availableIcons[Math.floor(Math.random() * 8)],
                   color: this.availableColors[Math.floor(Math.random() * this.availableColors.length)],
                   userId: this.userId,
+                  workspaceType: this.getWorkspaceScope(this.user).workspaceType,
+                  workspaceId: this.getWorkspaceScope(this.user).workspaceId,
                   isDefault: false,
                   createdAt: new Date()
                 };
@@ -139,5 +149,28 @@ export class CategoriesPage implements OnInit {
 
   goBack() {
     this.router.navigate(['/tabs/dashboard']);
+  }
+
+  ngOnDestroy(): void {
+    this.authSub?.unsubscribe();
+    this.categoriesSub?.unsubscribe();
+  }
+
+  private getWorkspaceScope(user: User | null): WorkspaceScope {
+    if (user?.accountMode === 'business') {
+      return {
+        workspaceType: 'business',
+        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
+      };
+    }
+    return { workspaceType: 'personal', workspaceId: 'personal' };
+  }
+
+  private toBusinessWorkspaceId(name?: string): string {
+    const slug = (name || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug ? `shop-${slug}` : 'shop-default';
   }
 }

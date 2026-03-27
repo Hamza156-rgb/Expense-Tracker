@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Expense, ExpenseFilter } from '../models/models';
+import { Expense, ExpenseFilter, WorkspaceScope } from '../models/models';
 import firebase from 'firebase/compat/app';
 import { Timestamp } from 'firebase/firestore';
 import { OfflineMutation, OfflineSyncService } from './offline-sync.service';
@@ -13,6 +13,7 @@ export class ExpenseService {
   private streams = new Map<string, BehaviorSubject<Expense[]>>();
   private serverSubs = new Map<string, Subscription>();
   private isFlushing = false;
+  private readonly personalScope: WorkspaceScope = { workspaceType: 'personal', workspaceId: 'personal' };
 
   constructor(
     private afs: AngularFirestore,
@@ -31,14 +32,17 @@ export class ExpenseService {
     });
   }
 
-  getExpenses(userId: string): Observable<Expense[]> {
-    let stream = this.streams.get(userId);
+  getExpenses(userId: string, scope?: WorkspaceScope): Observable<Expense[]> {
+    const resolvedScope = this.resolveScope(scope);
+    const scopeKey = this.getScopeKey(userId, resolvedScope);
+
+    let stream = this.streams.get(scopeKey);
     if (!stream) {
-      stream = new BehaviorSubject<Expense[]>(this.readCachedExpenses(userId));
-      this.streams.set(userId, stream);
+      stream = new BehaviorSubject<Expense[]>(this.readCachedExpenses(scopeKey));
+      this.streams.set(scopeKey, stream);
     }
 
-    this.ensureServerSubscription(userId);
+    this.ensureServerSubscription(userId, resolvedScope, scopeKey);
     if (this.offlineSync.isOnline()) {
       this.flushPendingMutations();
     }
@@ -46,8 +50,8 @@ export class ExpenseService {
     return stream.asObservable();
   }
 
-  getFilteredExpenses(userId: string, filter: ExpenseFilter): Observable<Expense[]> {
-    return this.getExpenses(userId).pipe(
+  getFilteredExpenses(userId: string, filter: ExpenseFilter, scope?: WorkspaceScope): Observable<Expense[]> {
+    return this.getExpenses(userId, scope).pipe(
       map(expenses => {
         let filtered = expenses;
 
@@ -72,6 +76,7 @@ export class ExpenseService {
 
   async addExpense(expense: Omit<Expense, 'id'>): Promise<void> {
     const normalized = this.normalizeExpenseInput(expense);
+    const scopeKey = this.getScopeKey(normalized.userId, this.resolveScope(normalized));
     try {
       if (!this.offlineSync.isOnline()) throw new Error('offline');
 
@@ -85,7 +90,7 @@ export class ExpenseService {
 
       const tempId = `tmp-exp-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
       const optimistic: Expense = { ...normalized, id: tempId };
-      this.updateLocalExpenses(normalized.userId, current => [optimistic, ...current]);
+      this.updateLocalExpenses(scopeKey, current => [optimistic, ...current]);
 
       this.offlineSync.enqueueMutation({
         entity: 'expense',
@@ -110,12 +115,17 @@ export class ExpenseService {
     } catch (error: any) {
       if (!this.shouldQueue(error)) throw error;
 
-      const userId = payload.userId || this.findUserIdForExpense(id);
-      if (!userId) throw error;
+      const scopeKey =
+        this.findScopeKeyForExpense(id) ||
+        (payload.userId ? this.getScopeKey(payload.userId, this.resolveScope(payload)) : null);
+      if (!scopeKey) throw error;
 
-      this.updateLocalExpenses(userId, current =>
+      this.updateLocalExpenses(scopeKey, current =>
         current.map(item => (item.id === id ? { ...item, ...payload } as Expense : item))
       );
+
+      const userId = payload.userId || this.findUserIdByScopeKey(scopeKey);
+      if (!userId) throw error;
 
       this.offlineSync.enqueueMutation({
         entity: 'expense',
@@ -134,10 +144,13 @@ export class ExpenseService {
     } catch (error: any) {
       if (!this.shouldQueue(error)) throw error;
 
-      const userId = this.findUserIdForExpense(id);
+      const scopeKey = this.findScopeKeyForExpense(id);
+      if (!scopeKey) throw error;
+
+      const userId = this.findUserIdByScopeKey(scopeKey);
       if (!userId) throw error;
 
-      this.updateLocalExpenses(userId, current => current.filter(item => item.id !== id));
+      this.updateLocalExpenses(scopeKey, current => current.filter(item => item.id !== id));
       this.offlineSync.enqueueMutation({
         entity: 'expense',
         action: 'delete',
@@ -159,8 +172,8 @@ export class ExpenseService {
     return expenses.reduce((sum, e) => sum + e.amount, 0);
   }
 
-  private ensureServerSubscription(userId: string): void {
-    if (this.serverSubs.has(userId)) return;
+  private ensureServerSubscription(userId: string, scope: WorkspaceScope, scopeKey: string): void {
+    if (this.serverSubs.has(scopeKey)) return;
 
     const sub = this.afs.collection<Expense>('expenses', ref =>
       ref.where('userId', '==', userId)
@@ -180,62 +193,75 @@ export class ExpenseService {
             date: data.date instanceof Timestamp ? data.date.toDate() : new Date(data.date),
             notes: data.notes ?? '',
             userId: data.userId ?? '',
+            workspaceType: data.workspaceType ?? 'personal',
+            workspaceId: data.workspaceId ?? 'personal',
             createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date()
           } as Expense;
         })
       )
     ).subscribe(expenses => {
-      const stream = this.streams.get(userId);
+      const scopedExpenses = expenses.filter(item => this.matchesExpenseScope(item, scope));
+      const stream = this.streams.get(scopeKey);
       if (stream) {
-        stream.next(expenses);
+        stream.next(scopedExpenses);
       }
-      this.writeCachedExpenses(userId, expenses);
+      this.writeCachedExpenses(scopeKey, scopedExpenses);
     });
 
-    this.serverSubs.set(userId, sub);
+    this.serverSubs.set(scopeKey, sub);
   }
 
-  private readCachedExpenses(userId: string): Expense[] {
-    const key = this.offlineSync.cacheExpensesKey(userId);
+  private readCachedExpenses(scopeKey: string): Expense[] {
+    const key = this.offlineSync.cacheExpensesKey(scopeKey);
     const cached = this.offlineSync.readCache<any[]>(key, []);
     return cached.map(item => ({
       ...item,
       date: item?.date ? new Date(item.date) : new Date(),
-      createdAt: item?.createdAt ? new Date(item.createdAt) : new Date()
+      createdAt: item?.createdAt ? new Date(item.createdAt) : new Date(),
+      workspaceType: item?.workspaceType ?? 'personal',
+      workspaceId: item?.workspaceId ?? 'personal'
     })) as Expense[];
   }
 
-  private writeCachedExpenses(userId: string, expenses: Expense[]): void {
-    const key = this.offlineSync.cacheExpensesKey(userId);
+  private writeCachedExpenses(scopeKey: string, expenses: Expense[]): void {
+    const key = this.offlineSync.cacheExpensesKey(scopeKey);
     this.offlineSync.writeCache(key, expenses);
   }
 
-  private updateLocalExpenses(userId: string, updater: (current: Expense[]) => Expense[]): void {
-    let stream = this.streams.get(userId);
+  private updateLocalExpenses(scopeKey: string, updater: (current: Expense[]) => Expense[]): void {
+    let stream = this.streams.get(scopeKey);
     if (!stream) {
-      stream = new BehaviorSubject<Expense[]>(this.readCachedExpenses(userId));
-      this.streams.set(userId, stream);
+      stream = new BehaviorSubject<Expense[]>(this.readCachedExpenses(scopeKey));
+      this.streams.set(scopeKey, stream);
     }
     const next = updater(stream.value);
     stream.next(next);
-    this.writeCachedExpenses(userId, next);
+    this.writeCachedExpenses(scopeKey, next);
   }
 
-  private findUserIdForExpense(expenseId: string): string | null {
-    for (const [userId, stream] of this.streams.entries()) {
+  private findScopeKeyForExpense(expenseId: string): string | null {
+    for (const [scopeKey, stream] of this.streams.entries()) {
       if (stream.value.some(item => item.id === expenseId)) {
-        return userId;
+        return scopeKey;
       }
     }
     return null;
   }
 
+  private findUserIdByScopeKey(scopeKey: string): string | null {
+    const [userId] = scopeKey.split('::');
+    return userId || null;
+  }
+
   private normalizeExpenseInput(expense: Omit<Expense, 'id'>): Omit<Expense, 'id'> {
+    const scope = this.resolveScope(expense);
     return {
       ...expense,
       date: new Date(expense.date),
       createdAt: expense.createdAt ? new Date(expense.createdAt) : new Date(),
-      notes: expense.notes || ''
+      notes: expense.notes || '',
+      workspaceType: scope.workspaceType,
+      workspaceId: scope.workspaceId
     };
   }
 
@@ -243,6 +269,11 @@ export class ExpenseService {
     const payload: Partial<Expense> = { ...expense };
     if (expense.date) payload.date = new Date(expense.date);
     if (expense.createdAt) payload.createdAt = new Date(expense.createdAt);
+    if (expense.workspaceType || expense.workspaceId) {
+      const scope = this.resolveScope(expense);
+      payload.workspaceType = scope.workspaceType;
+      payload.workspaceId = scope.workspaceId;
+    }
     return payload;
   }
 
@@ -281,7 +312,8 @@ export class ExpenseService {
 
         if (mutation.tempId) {
           this.offlineSync.replaceMutationDocId('expense', mutation.tempId, ref.id);
-          this.updateLocalExpenses(mutation.userId, current =>
+          const scopeKey = this.getScopeKey(mutation.userId, this.resolveScope(payload));
+          this.updateLocalExpenses(scopeKey, current =>
             current.map(item => (item.id === mutation.tempId ? { ...item, id: ref.id } : item))
           );
         }
@@ -304,5 +336,22 @@ export class ExpenseService {
     } catch {
       return false;
     }
+  }
+
+  private resolveScope(source?: Partial<Expense> | WorkspaceScope | null): WorkspaceScope {
+    return {
+      workspaceType: source?.workspaceType || this.personalScope.workspaceType,
+      workspaceId: (source?.workspaceId || this.personalScope.workspaceId).trim()
+    };
+  }
+
+  private getScopeKey(userId: string, scope: WorkspaceScope): string {
+    return `${userId}::${scope.workspaceType}::${scope.workspaceId}`;
+  }
+
+  private matchesExpenseScope(expense: Expense, scope: WorkspaceScope): boolean {
+    const itemType = expense.workspaceType || this.personalScope.workspaceType;
+    const itemId = expense.workspaceId || this.personalScope.workspaceId;
+    return itemType === scope.workspaceType && itemId === scope.workspaceId;
   }
 }

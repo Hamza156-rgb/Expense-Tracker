@@ -30,6 +30,11 @@ const routes: Routes = [
       import('./pages/add-expense/add-expense.module').then(m => m.AddExpensePageModule),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'workspace-mode',
+    loadChildren: () => import('./pages/workspace-mode/workspace-mode.module').then(m => m.WorkspaceModePageModule),
+    canActivate: [AuthGuard]
+  },
 
   {
     path: '**',

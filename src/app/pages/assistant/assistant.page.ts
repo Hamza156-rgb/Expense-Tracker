@@ -4,7 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
 import { AIAssistantService, AssistantContextPayload } from '../../services/ai-assistant.service';
-import { Expense, Category, User } from '../../models/models';
+import { Expense, Category, User, WorkspaceScope } from '../../models/models';
 
 interface ChatMessage {
   role: 'assistant' | 'user';
@@ -40,6 +40,7 @@ export class AssistantPage implements OnInit, OnDestroy {
   ];
 
   private sub?: Subscription;
+  private dataSub?: Subscription;
 
   constructor(
     private authService: AuthService,
@@ -51,21 +52,23 @@ export class AssistantPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.sub = this.authService.user$.subscribe(user => {
       this.user = user;
+      this.dataSub?.unsubscribe();
+      this.expenses = [];
+      this.categories = [];
       if (!user) return;
 
-      this.sub?.add(
-        combineLatest([
-          this.expenseService.getExpenses(user.uid),
-          this.categoryService.getCategories(user.uid)
-        ]).subscribe(([expenses, categories]) => {
-          this.expenses = expenses;
-          this.categories = categories;
-        })
-      );
+      this.dataSub = combineLatest([
+        this.expenseService.getExpenses(user.uid, this.getWorkspaceScope(user)),
+        this.categoryService.getCategories(user.uid, this.getWorkspaceScope(user))
+      ]).subscribe(([expenses, categories]) => {
+        this.expenses = expenses;
+        this.categories = categories;
+      });
     });
   }
 
   ngOnDestroy(): void {
+    this.dataSub?.unsubscribe();
     this.sub?.unsubscribe();
   }
 
@@ -132,6 +135,24 @@ export class AssistantPage implements OnInit, OnDestroy {
       thisMonthSpend,
       topCategories
     };
+  }
+
+  private getWorkspaceScope(user: User): WorkspaceScope {
+    if (user.accountMode === 'business') {
+      return {
+        workspaceType: 'business',
+        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
+      };
+    }
+    return { workspaceType: 'personal', workspaceId: 'personal' };
+  }
+
+  private toBusinessWorkspaceId(name?: string): string {
+    const slug = (name || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug ? `shop-${slug}` : 'shop-default';
   }
 
 }

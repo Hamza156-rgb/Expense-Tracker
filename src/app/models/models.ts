@@ -1,3 +1,10 @@
+export type WorkspaceType = 'personal' | 'business';
+
+export interface WorkspaceScope {
+  workspaceType: WorkspaceType;
+  workspaceId: string;
+}
+
 // User Model
 export interface User {
   uid: string;
@@ -5,6 +12,9 @@ export interface User {
   lastName: string;
   email: string;
   createdAt: Date;
+  accountMode?: 'personal' | 'business';
+  businessName?: string;
+  businessWorkspaceId?: string;
 }
 
 // Category Model
@@ -14,6 +24,8 @@ export interface Category {
   icon: string;
   color: string;
   userId: string;
+  workspaceType?: WorkspaceType;
+  workspaceId?: string;
   isDefault?: boolean;
   createdAt: Date;
 }
@@ -30,6 +42,8 @@ export interface Expense {
   date: Date;
   notes?: string;
   userId: string;
+  workspaceType?: WorkspaceType;
+  workspaceId?: string;
   createdAt: Date;
 }
 

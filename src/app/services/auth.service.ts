@@ -36,7 +36,8 @@ export class AuthService {
       firstName,
       lastName,
       email,
-      createdAt: new Date()
+      createdAt: new Date(),
+      accountMode: 'personal'
     };
 
     await this.afs.doc(`users/${uid}`).set(userData);
@@ -81,7 +82,14 @@ export class AuthService {
     const batch = this.afs.firestore.batch();
     defaultCategories.forEach(cat => {
       const ref = this.afs.collection('categories').doc().ref;
-      batch.set(ref, { ...cat, userId, isDefault: true, createdAt: new Date() });
+      batch.set(ref, {
+        ...cat,
+        userId,
+        workspaceType: 'personal',
+        workspaceId: 'personal',
+        isDefault: true,
+        createdAt: new Date()
+      });
     });
     await batch.commit();
   }

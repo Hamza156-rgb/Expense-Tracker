@@ -1,37 +1,50 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
-import { User, Expense } from '../../models/models';
+import { User, Expense, WorkspaceScope } from '../../models/models';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss']
 })
-export class ProfilePage implements OnInit {
+export class ProfilePage implements OnInit, OnDestroy {
   user: User | null = null;
   totalExpenses = 0;
   totalAmount = 0;
   thisMonthAmount = 0;
   avgPerDay = 0;
+  private expenseSub?: Subscription;
 
   constructor(
     private authService: AuthService,
     private expenseService: ExpenseService,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private router: Router
   ) { }
 
   ngOnInit() {
     this.authService.user$.subscribe(user => {
       this.user = user;
-      if (user) {
-        this.expenseService.getExpenses(user.uid).subscribe(expenses => {
-          this.calculateStats(expenses);
-        });
-      }
+      this.expenseSub?.unsubscribe();
+      this.totalExpenses = 0;
+      this.totalAmount = 0;
+      this.thisMonthAmount = 0;
+      this.avgPerDay = 0;
+      if (!user) return;
+
+      this.expenseSub = this.expenseService
+        .getExpenses(user.uid, this.getWorkspaceScope(user))
+        .subscribe(expenses => this.calculateStats(expenses));
     });
+  }
+
+  ngOnDestroy(): void {
+    this.expenseSub?.unsubscribe();
   }
 
   calculateStats(expenses: Expense[]) {
@@ -83,5 +96,38 @@ export class ProfilePage implements OnInit {
 
   get initials(): string {
     return `${this.user?.firstName?.charAt(0) || ''}${this.user?.lastName?.charAt(0) || ''}`;
+  }
+
+  get modeLabel(): string {
+    return this.user?.accountMode === 'business' ? 'Business' : 'Personal';
+  }
+
+  get modeSubLabel(): string {
+    if (this.user?.accountMode === 'business') {
+      return this.user?.businessName?.trim() || 'Shop Mode';
+    }
+    return 'Private Expense Tracking';
+  }
+
+  openWorkspaceMode() {
+    this.router.navigate(['/workspace-mode']);
+  }
+
+  private getWorkspaceScope(user: User): WorkspaceScope {
+    if (user.accountMode === 'business') {
+      return {
+        workspaceType: 'business',
+        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
+      };
+    }
+    return { workspaceType: 'personal', workspaceId: 'personal' };
+  }
+
+  private toBusinessWorkspaceId(name?: string): string {
+    const slug = (name || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug ? `shop-${slug}` : 'shop-default';
   }
 }

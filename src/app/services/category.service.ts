@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Category } from '../models/models';
+import { Category, WorkspaceScope } from '../models/models';
 import { Timestamp } from 'firebase/firestore';
 import { OfflineMutation, OfflineSyncService } from './offline-sync.service';
 
@@ -12,6 +12,7 @@ export class CategoryService {
   private streams = new Map<string, BehaviorSubject<Category[]>>();
   private serverSubs = new Map<string, Subscription>();
   private isFlushing = false;
+  private readonly personalScope: WorkspaceScope = { workspaceType: 'personal', workspaceId: 'personal' };
 
   constructor(
     private afs: AngularFirestore,
@@ -24,14 +25,17 @@ export class CategoryService {
     });
   }
 
-  getCategories(userId: string): Observable<Category[]> {
-    let stream = this.streams.get(userId);
+  getCategories(userId: string, scope?: WorkspaceScope): Observable<Category[]> {
+    const resolvedScope = this.resolveScope(scope);
+    const scopeKey = this.getScopeKey(userId, resolvedScope);
+
+    let stream = this.streams.get(scopeKey);
     if (!stream) {
-      stream = new BehaviorSubject<Category[]>(this.readCachedCategories(userId));
-      this.streams.set(userId, stream);
+      stream = new BehaviorSubject<Category[]>(this.readCachedCategories(scopeKey));
+      this.streams.set(scopeKey, stream);
     }
 
-    this.ensureServerSubscription(userId);
+    this.ensureServerSubscription(userId, resolvedScope, scopeKey);
     if (this.offlineSync.isOnline()) {
       this.flushPendingMutations();
     }
@@ -41,6 +45,7 @@ export class CategoryService {
 
   async addCategory(category: Omit<Category, 'id'>): Promise<void> {
     const normalized = this.normalizeCategoryInput(category);
+    const scopeKey = this.getScopeKey(normalized.userId, this.resolveScope(normalized));
     try {
       if (!this.offlineSync.isOnline()) throw new Error('offline');
       await this.afs.collection('categories').add(normalized);
@@ -49,7 +54,7 @@ export class CategoryService {
 
       const tempId = `tmp-cat-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
       const optimistic: Category = { ...normalized, id: tempId };
-      this.updateLocalCategories(normalized.userId, current =>
+      this.updateLocalCategories(scopeKey, current =>
         [...current, optimistic].sort((a, b) => a.name.localeCompare(b.name))
       );
 
@@ -71,14 +76,19 @@ export class CategoryService {
     } catch (error: any) {
       if (!this.shouldQueue(error)) throw error;
 
-      const userId = payload.userId || this.findUserIdForCategory(id);
-      if (!userId) throw error;
+      const scopeKey =
+        this.findScopeKeyForCategory(id) ||
+        (payload.userId ? this.getScopeKey(payload.userId, this.resolveScope(payload)) : null);
+      if (!scopeKey) throw error;
 
-      this.updateLocalCategories(userId, current =>
+      this.updateLocalCategories(scopeKey, current =>
         current
           .map(item => (item.id === id ? { ...item, ...payload } as Category : item))
           .sort((a, b) => a.name.localeCompare(b.name))
       );
+
+      const userId = payload.userId || this.findUserIdByScopeKey(scopeKey);
+      if (!userId) throw error;
 
       this.offlineSync.enqueueMutation({
         entity: 'category',
@@ -97,10 +107,13 @@ export class CategoryService {
     } catch (error: any) {
       if (!this.shouldQueue(error)) throw error;
 
-      const userId = this.findUserIdForCategory(id);
+      const scopeKey = this.findScopeKeyForCategory(id);
+      if (!scopeKey) throw error;
+
+      const userId = this.findUserIdByScopeKey(scopeKey);
       if (!userId) throw error;
 
-      this.updateLocalCategories(userId, current => current.filter(item => item.id !== id));
+      this.updateLocalCategories(scopeKey, current => current.filter(item => item.id !== id));
       this.offlineSync.enqueueMutation({
         entity: 'category',
         action: 'delete',
@@ -110,11 +123,11 @@ export class CategoryService {
     }
   }
 
-  private ensureServerSubscription(userId: string): void {
-    if (this.serverSubs.has(userId)) return;
+  private ensureServerSubscription(userId: string, scope: WorkspaceScope, scopeKey: string): void {
+    if (this.serverSubs.has(scopeKey)) return;
 
     const sub = this.afs.collection<Category>('categories', ref =>
-      ref.where('userId', '==', userId).orderBy('name')
+      ref.where('userId', '==', userId)
     ).snapshotChanges().pipe(
       map(actions =>
         actions.map(a => {
@@ -126,67 +139,87 @@ export class CategoryService {
             icon: data.icon ?? '',
             color: data.color ?? '',
             userId: data.userId ?? '',
+            workspaceType: data.workspaceType ?? 'personal',
+            workspaceId: data.workspaceId ?? 'personal',
             isDefault: data.isDefault ?? false,
             createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date()
           } as Category;
         })
       )
     ).subscribe(categories => {
-      const stream = this.streams.get(userId);
+      const scopedCategories = categories
+        .filter(item => this.matchesCategoryScope(item, scope))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      const stream = this.streams.get(scopeKey);
       if (stream) {
-        stream.next(categories);
+        stream.next(scopedCategories);
       }
-      this.writeCachedCategories(userId, categories);
+      this.writeCachedCategories(scopeKey, scopedCategories);
     });
 
-    this.serverSubs.set(userId, sub);
+    this.serverSubs.set(scopeKey, sub);
   }
 
-  private readCachedCategories(userId: string): Category[] {
-    const key = this.offlineSync.cacheCategoriesKey(userId);
+  private readCachedCategories(scopeKey: string): Category[] {
+    const key = this.offlineSync.cacheCategoriesKey(scopeKey);
     const cached = this.offlineSync.readCache<any[]>(key, []);
     return cached.map(item => ({
       ...item,
-      createdAt: item?.createdAt ? new Date(item.createdAt) : new Date()
+      createdAt: item?.createdAt ? new Date(item.createdAt) : new Date(),
+      workspaceType: item?.workspaceType ?? 'personal',
+      workspaceId: item?.workspaceId ?? 'personal'
     })) as Category[];
   }
 
-  private writeCachedCategories(userId: string, categories: Category[]): void {
-    const key = this.offlineSync.cacheCategoriesKey(userId);
+  private writeCachedCategories(scopeKey: string, categories: Category[]): void {
+    const key = this.offlineSync.cacheCategoriesKey(scopeKey);
     this.offlineSync.writeCache(key, categories);
   }
 
-  private updateLocalCategories(userId: string, updater: (current: Category[]) => Category[]): void {
-    let stream = this.streams.get(userId);
+  private updateLocalCategories(scopeKey: string, updater: (current: Category[]) => Category[]): void {
+    let stream = this.streams.get(scopeKey);
     if (!stream) {
-      stream = new BehaviorSubject<Category[]>(this.readCachedCategories(userId));
-      this.streams.set(userId, stream);
+      stream = new BehaviorSubject<Category[]>(this.readCachedCategories(scopeKey));
+      this.streams.set(scopeKey, stream);
     }
     const next = updater(stream.value);
     stream.next(next);
-    this.writeCachedCategories(userId, next);
+    this.writeCachedCategories(scopeKey, next);
   }
 
-  private findUserIdForCategory(categoryId: string): string | null {
-    for (const [userId, stream] of this.streams.entries()) {
+  private findScopeKeyForCategory(categoryId: string): string | null {
+    for (const [scopeKey, stream] of this.streams.entries()) {
       if (stream.value.some(item => item.id === categoryId)) {
-        return userId;
+        return scopeKey;
       }
     }
     return null;
   }
 
+  private findUserIdByScopeKey(scopeKey: string): string | null {
+    const [userId] = scopeKey.split('::');
+    return userId || null;
+  }
+
   private normalizeCategoryInput(category: Omit<Category, 'id'>): Omit<Category, 'id'> {
+    const scope = this.resolveScope(category);
     return {
       ...category,
       createdAt: category.createdAt ? new Date(category.createdAt) : new Date(),
-      isDefault: !!category.isDefault
+      isDefault: !!category.isDefault,
+      workspaceType: scope.workspaceType,
+      workspaceId: scope.workspaceId
     };
   }
 
   private normalizePartialCategory(category: Partial<Category>): Partial<Category> {
     const payload: Partial<Category> = { ...category };
     if (category.createdAt) payload.createdAt = new Date(category.createdAt);
+    if (category.workspaceType || category.workspaceId) {
+      const scope = this.resolveScope(category);
+      payload.workspaceType = scope.workspaceType;
+      payload.workspaceId = scope.workspaceId;
+    }
     return payload;
   }
 
@@ -224,7 +257,8 @@ export class CategoryService {
           this.offlineSync.remapExpenseCategoryIdInQueue(mutation.tempId, ref.id);
           this.offlineSync.remapExpenseCategoryIdInCache(mutation.tempId, ref.id);
 
-          this.updateLocalCategories(mutation.userId, current =>
+          const scopeKey = this.getScopeKey(mutation.userId, this.resolveScope(payload));
+          this.updateLocalCategories(scopeKey, current =>
             current
               .map(item => (item.id === mutation.tempId ? { ...item, id: ref.id } : item))
               .sort((a, b) => a.name.localeCompare(b.name))
@@ -245,5 +279,22 @@ export class CategoryService {
     } catch {
       return false;
     }
+  }
+
+  private resolveScope(source?: Partial<Category> | WorkspaceScope | null): WorkspaceScope {
+    return {
+      workspaceType: source?.workspaceType || this.personalScope.workspaceType,
+      workspaceId: (source?.workspaceId || this.personalScope.workspaceId).trim()
+    };
+  }
+
+  private getScopeKey(userId: string, scope: WorkspaceScope): string {
+    return `${userId}::${scope.workspaceType}::${scope.workspaceId}`;
+  }
+
+  private matchesCategoryScope(category: Category, scope: WorkspaceScope): boolean {
+    const itemType = category.workspaceType || this.personalScope.workspaceType;
+    const itemId = category.workspaceId || this.personalScope.workspaceId;
+    return itemType === scope.workspaceType && itemId === scope.workspaceId;
   }
 }

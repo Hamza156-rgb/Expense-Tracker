@@ -164,10 +164,35 @@
   }
 
   .info-content {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     .info-label { font-size: 11px; color: #94a3b8; font-weight: 500; }
     .info-value { font-size: 13px; color: #1e293b; font-weight: 600; margin-top: 2px; }
+  }
+}
+
+.mode-btn {
+  border: 1px solid rgba(15, 108, 189, 0.25);
+  background: rgba(15, 108, 189, 0.08);
+  color: #0f6cbd;
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background: rgba(15, 108, 189, 0.16);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
