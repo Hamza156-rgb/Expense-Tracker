@@ -46,6 +46,18 @@ export class CategoryService {
   async addCategory(category: Omit<Category, 'id'>): Promise<void> {
     const normalized = this.normalizeCategoryInput(category);
     const scopeKey = this.getScopeKey(normalized.userId, this.resolveScope(normalized));
+
+    // Check for duplicate name within the same scope
+    const currentStream = this.streams.get(scopeKey);
+    if (currentStream) {
+      const isDuplicate = currentStream.value.some(cat =>
+        cat.name.trim().toLowerCase() === normalized.name.trim().toLowerCase()
+      );
+      if (isDuplicate) {
+        throw new Error('DUPLICATE_CATEGORY_NAME');
+      }
+    }
+
     try {
       if (!this.offlineSync.isOnline()) throw new Error('offline');
       await this.afs.collection('categories').add(normalized);
@@ -70,15 +82,29 @@ export class CategoryService {
 
   async updateCategory(id: string, category: Partial<Category>): Promise<void> {
     const payload = this.normalizePartialCategory(category);
+    const scopeKey =
+      this.findScopeKeyForCategory(id) ||
+      (payload.userId ? this.getScopeKey(payload.userId, this.resolveScope(payload)) : null);
+
+    // Check for duplicate name if name is being updated
+    if (payload.name && scopeKey) {
+      const currentStream = this.streams.get(scopeKey);
+      if (currentStream) {
+        const isDuplicate = currentStream.value.some(cat =>
+          cat.id !== id && cat.name.trim().toLowerCase() === payload.name!.trim().toLowerCase()
+        );
+        if (isDuplicate) {
+          throw new Error('DUPLICATE_CATEGORY_NAME');
+        }
+      }
+    }
+
     try {
       if (!this.offlineSync.isOnline()) throw new Error('offline');
       await this.afs.doc(`categories/${id}`).update(payload);
     } catch (error: any) {
       if (!this.shouldQueue(error)) throw error;
 
-      const scopeKey =
-        this.findScopeKeyForCategory(id) ||
-        (payload.userId ? this.getScopeKey(payload.userId, this.resolveScope(payload)) : null);
       if (!scopeKey) throw error;
 
       this.updateLocalCategories(scopeKey, current =>

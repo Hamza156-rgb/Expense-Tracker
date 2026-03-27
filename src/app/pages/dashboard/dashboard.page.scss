@@ -17,12 +17,22 @@ ion-content {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  gap: 12px;
 }
 
 .user-row {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .avatar {
@@ -49,6 +59,9 @@ ion-content {
   font-size: 18px;
   font-weight: 800;
   color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mode-pill {
@@ -61,7 +74,8 @@ ion-content {
   border: 1px solid rgba(236, 254, 255, 0.35);
   border-radius: 999px;
   padding: 2px 8px;
-  max-width: 180px;
+  max-width: 100%;
+  width: fit-content;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -70,6 +84,7 @@ ion-content {
 .hdr-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .hbtn {

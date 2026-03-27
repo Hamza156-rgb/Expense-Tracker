@@ -104,8 +104,21 @@ export class CategoriesPage implements OnInit, OnDestroy {
                 toast.present();
               }
               return true;
-            } catch {
-              const toast = await this.toastCtrl.create({ message: 'Failed to save category', duration: 2000, color: 'danger', position: 'top' });
+            } catch (error: any) {
+              let message = 'Failed to save category';
+              let color = 'danger';
+
+              if (error.message === 'DUPLICATE_CATEGORY_NAME') {
+                message = `A category named "${data.name.trim()}" already exists in this profile.`;
+                color = 'warning';
+              }
+
+              const toast = await this.toastCtrl.create({
+                message,
+                duration: 3000,
+                color: color as any,
+                position: 'top'
+              });
               toast.present();
               return false;
             }
