@@ -73,6 +73,17 @@
     </button>
   </div>
 
+  <!-- AI INSIGHTS -->
+  <div class="ai-card" *ngIf="!isLoading && aiInsights.length > 0">
+    <div class="ai-head">
+      <ion-icon name="sparkles-outline"></ion-icon>
+      <span>Money Map AI Insights</span>
+    </div>
+    <div class="ai-list">
+      <div class="ai-item" *ngFor="let insight of aiInsights">{{ insight }}</div>
+    </div>
+  </div>
+
   <!-- FILTER PANEL -->
   <div class="fpanel" *ngIf="showFilterPanel">
     <div class="fp-block">

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
@@ -6,19 +6,23 @@ import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
 import { Category, Expense } from '../../models/models';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-add-expense',
   templateUrl: './add-expense.page.html',
   styleUrls: ['./add-expense.page.scss']
 })
-export class AddExpensePage implements OnInit {
+export class AddExpensePage implements OnInit, OnDestroy {
   expenseForm: FormGroup;
   categories: Category[] = [];
   userId = '';
   editId: string | null = null;
   isEditMode = false;
   today: string;
+  suggestedCategory: Category | null = null;
+  private titleSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -51,8 +55,16 @@ export class AddExpensePage implements OnInit {
   
       this.categoryService.getCategories(user.uid).subscribe(cats => {
         this.categories = cats; // now correctly typed
+        this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
       });
     });
+
+    const titleControl = this.expenseForm.get('title');
+    if (titleControl) {
+      this.titleSub = titleControl.valueChanges
+        .pipe(debounceTime(120), distinctUntilChanged())
+        .subscribe(value => this.updateSuggestionFromTitle(value));
+    }
   
     this.route.queryParams.subscribe(params => {
       if (params['id']) {
@@ -62,11 +74,23 @@ export class AddExpensePage implements OnInit {
       }
     });
   }
+
+  ngOnDestroy(): void {
+    this.titleSub?.unsubscribe();
+  }
   
   selectCategory(catId: string) {
     if (!catId) return;
     this.expenseForm.get('categoryId')?.patchValue(catId);
     this.expenseForm.get('categoryId')?.markAsTouched();
+    if (this.suggestedCategory?.id === catId) {
+      this.suggestedCategory = null;
+    }
+  }
+
+  applySuggestedCategory() {
+    if (!this.suggestedCategory?.id) return;
+    this.selectCategory(this.suggestedCategory.id);
   }
 
   async loadExpense(id: string) {
@@ -89,6 +113,7 @@ export class AddExpensePage implements OnInit {
         });
       }
       loading.dismiss();
+      this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
     });
   }
 
@@ -150,5 +175,48 @@ export class AddExpensePage implements OnInit {
       if (control.errors['minlength']) return 'Must be at least 2 characters';
     }
     return '';
+  }
+
+  private updateSuggestionFromTitle(rawTitle: string) {
+    const title = String(rawTitle || '').trim().toLowerCase();
+    if (!title || this.categories.length === 0) {
+      this.suggestedCategory = null;
+      return;
+    }
+
+    const keywordMap: Record<string, string[]> = {
+      'Food & Dining': ['food', 'lunch', 'dinner', 'breakfast', 'meal', 'pizza', 'burger', 'restaurant', 'cafe', 'tea', 'coffee', 'kfc', 'mcd', 'biryani'],
+      Transportation: ['uber', 'careem', 'fuel', 'petrol', 'diesel', 'bus', 'taxi', 'train', 'metro', 'rickshaw', 'transport'],
+      Shopping: ['mall', 'shopping', 'cloth', 'shirt', 'shoe', 'amazon', 'daraz', 'store', 'purchase', 'buy'],
+      Entertainment: ['movie', 'cinema', 'netflix', 'spotify', 'game', 'concert', 'entertainment'],
+      Health: ['doctor', 'hospital', 'clinic', 'medicine', 'pharmacy', 'health', 'dental'],
+      'Bills & Utilities': ['bill', 'electricity', 'gas', 'internet', 'wifi', 'mobile', 'utility', 'rent', 'water'],
+      Education: ['book', 'course', 'tuition', 'school', 'college', 'university', 'exam', 'education']
+    };
+
+    const best = this.categories
+      .map(category => {
+        const keywords = keywordMap[category.name] || [];
+        const score = keywords.reduce((sum, keyword) => sum + (title.includes(keyword) ? 1 : 0), 0);
+        return { category, score };
+      })
+      .sort((a, b) => b.score - a.score)[0];
+
+    if (best && best.score > 0 && this.expenseForm.get('categoryId')?.value !== best.category.id) {
+      this.suggestedCategory = best.category;
+      return;
+    }
+
+    const titleWords = title.split(/\s+/).filter(Boolean);
+    const fuzzy = this.categories.find(category =>
+      titleWords.some(word => category.name.toLowerCase().includes(word) && word.length > 3)
+    );
+
+    if (fuzzy && this.expenseForm.get('categoryId')?.value !== fuzzy.id) {
+      this.suggestedCategory = fuzzy;
+      return;
+    }
+
+    this.suggestedCategory = null;
   }
 }

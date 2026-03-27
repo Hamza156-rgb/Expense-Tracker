@@ -25,6 +25,13 @@
         <div class="input-wrapper" [class.error]="getFieldError('title')">
           <input formControlName="title" type="text" placeholder="e.g. Lunch at McDonald's" class="form-input" />
         </div>
+        <div class="ai-suggest" *ngIf="suggestedCategory">
+          <div class="ai-suggest-text">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>AI Suggestion: <strong>{{ suggestedCategory.name }}</strong></span>
+          </div>
+          <button type="button" class="ai-apply" (click)="applySuggestedCategory()">Use</button>
+        </div>
         <span class="error-text" *ngIf="getFieldError('title')">{{ getFieldError('title') }}</span>
       </div>
 

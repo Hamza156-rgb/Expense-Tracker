@@ -36,6 +36,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   endDateStr = '';
   showFilterPanel = false;
   private suppressDateInputReaction = false;
+  aiInsights: string[] = [];
 
   totalAmount = 0;
   todayAmount = 0;
@@ -108,6 +109,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.filteredExpenses = filtered;
     this.filterActive = this.selectedCategoryIds.length > 0 || !!this.startDateStr || !!this.endDateStr;
     this.totalAmount = filtered.reduce((sum, e) => sum + e.amount, 0);
+    this.updateAIInsights();
   }
 
   calculateStats() {
@@ -121,6 +123,83 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.monthAmount = this.expenses
       .filter(e => new Date(e.date) >= monthStart)
       .reduce((s, e) => s + e.amount, 0);
+  }
+
+  private updateAIInsights() {
+    const source = this.filteredExpenses.length > 0 ? this.filteredExpenses : this.expenses;
+    const insights: string[] = [];
+
+    if (this.expenses.length === 0) {
+      this.aiInsights = ['Add a few expenses and Money Map AI Insights will start showing your spending trends.'];
+      return;
+    }
+
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const currentMonthTotal = this.expenses
+      .filter(e => new Date(e.date) >= currentMonthStart)
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const previousMonthTotal = this.expenses
+      .filter(e => {
+        const d = new Date(e.date);
+        return d >= previousMonthStart && d <= previousMonthEnd;
+      })
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    if (previousMonthTotal > 0) {
+      const diffPct = Math.round(((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100);
+      if (Math.abs(diffPct) >= 10) {
+        insights.push(
+          diffPct > 0
+            ? `Your monthly spending is up ${diffPct}% versus last month.`
+            : `Nice progress: spending is down ${Math.abs(diffPct)}% versus last month.`
+        );
+      }
+    }
+
+    const categoryTotals = this.getCategoryTotals(source);
+    if (categoryTotals.length > 0) {
+      const top = categoryTotals[0];
+      const sourceTotal = source.reduce((sum, e) => sum + e.amount, 0);
+      const share = sourceTotal > 0 ? Math.round((top.total / sourceTotal) * 100) : 0;
+      insights.push(`${top.name} is your top spending category (${share}% of selected expenses).`);
+    }
+
+    const avg = source.reduce((sum, e) => sum + e.amount, 0) / Math.max(1, source.length);
+    const biggest = [...source].sort((a, b) => b.amount - a.amount)[0];
+    if (biggest && biggest.amount >= avg * 2.2 && avg > 0) {
+      insights.push(`Unusual spend detected: "${biggest.title}" is ${Math.round(biggest.amount / avg)}x your average expense.`);
+    }
+
+    const recent7 = source.filter(e => {
+      const d = new Date(e.date);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 6);
+      return d >= cutoff;
+    });
+    if (recent7.length >= 4) {
+      insights.push(`You logged ${recent7.length} expenses in the last 7 days. Great tracking consistency.`);
+    }
+
+    this.aiInsights = insights.slice(0, 3);
+    if (this.aiInsights.length === 0) {
+      this.aiInsights = ['Your spending is stable. Keep logging expenses for deeper insights.'];
+    }
+  }
+
+  private getCategoryTotals(expenses: Expense[]): Array<{ name: string; total: number }> {
+    const map = new Map<string, number>();
+    expenses.forEach(expense => {
+      const name = this.getCategoryName(expense.categoryId);
+      map.set(name, (map.get(name) || 0) + expense.amount);
+    });
+    return Array.from(map.entries())
+      .map(([name, total]) => ({ name, total }))
+      .sort((a, b) => b.total - a.total);
   }
 
   getCategoryName(catId: string): string {
