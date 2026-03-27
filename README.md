@@ -1,4 +1,4 @@
-# Expense Tracker (Ionic Angular + Firebase)
+# Money Map (Ionic Angular + Firebase)
 
 A mobile-first expense tracking app built with Ionic 6, Angular 15, Firebase Auth, and Cloud Firestore.
 

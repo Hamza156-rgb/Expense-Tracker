@@ -93,7 +93,7 @@ export class ExportService {
       doc.setFontSize(8);
       doc.setTextColor(150);
       doc.text(
-        `Page ${i} of ${pageCount} — Expense Tracker`,
+        `Page ${i} of ${pageCount} — Money Map`,
         105,
         290,
         { align: 'center' }
