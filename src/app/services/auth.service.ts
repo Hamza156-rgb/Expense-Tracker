@@ -49,6 +49,10 @@ export class AuthService {
     await this.afAuth.signInWithEmailAndPassword(email, password);
   }
 
+  async resetPassword(email: string): Promise<void> {
+    await this.afAuth.sendPasswordResetEmail(email);
+  }
+
   async logout(): Promise<void> {
     await this.afAuth.signOut();
     await this.router.navigate(['/login']);

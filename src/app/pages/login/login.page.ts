@@ -46,6 +46,29 @@ export class LoginPage {
     }
   }
 
+  async onForgotPassword() {
+    const emailControl = this.loginForm.get('email');
+    emailControl?.markAsTouched();
+    emailControl?.updateValueAndValidity();
+
+    if (!emailControl || emailControl.invalid) {
+      await this.showToast('Enter a valid email first to reset your password.', 'warning');
+      return;
+    }
+
+    const loading = await this.loadingCtrl.create({ message: 'Sending reset link...' });
+    await loading.present();
+
+    try {
+      await this.authService.resetPassword(emailControl.value);
+      await loading.dismiss();
+      await this.showToast('Password reset email sent. Check your inbox.', 'success');
+    } catch (error: any) {
+      await loading.dismiss();
+      await this.showToast(this.getResetErrorMessage(error.code), 'danger');
+    }
+  }
+
   private getErrorMessage(code: string): string {
     const messages: { [key: string]: string } = {
       'auth/user-not-found': 'No account found with this email.',
@@ -55,6 +78,16 @@ export class LoginPage {
       'auth/invalid-credential': 'Invalid email or password.'
     };
     return messages[code] || 'Login failed. Please try again.';
+  }
+
+  private getResetErrorMessage(code: string): string {
+    const messages: { [key: string]: string } = {
+      'auth/user-not-found': 'No account found with this email.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/missing-email': 'Please enter your email address.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.'
+    };
+    return messages[code] || 'Could not send reset email. Please try again.';
   }
 
   private async showToast(message: string, color: string) {

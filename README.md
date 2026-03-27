@@ -1,229 +1,173 @@
-# 💰 Expense Tracker — Ionic Angular + Firebase
+# Expense Tracker (Ionic Angular + Firebase)
 
-A full-featured mobile expense tracking app built with **Ionic 6**, **Angular 15**, **Firebase**, and **Capacitor 5** for Android APK generation via **Codemagic CI/CD**.
+A mobile-first expense tracking app built with Ionic 6, Angular 15, Firebase Auth, and Cloud Firestore.
 
----
+## Features
 
-## ✨ Features
+- Email/password authentication with Firebase
+- Sign up, login, logout, and forgot password (reset email)
+- Auth loading screen that auto-redirects based on login state
+- Route guards:
+- `PublicGuard` blocks authenticated users from `/login` and `/signup`
+- `AuthGuard` protects `/tabs` and `/add-expense`
+- Dashboard with:
+- Total filtered spend
+- Today spend
+- This month spend
+- Expense list with edit/delete actions
+- Category + date range filtering
+- PDF export of currently filtered expenses
+- Expense management:
+- Add new expense
+- Edit existing expense
+- Delete expense with confirmation
+- Category management:
+- 8 default categories created on signup
+- Create/edit custom categories
+- Prevent deletion of default categories
+- Profile screen with spending stats and account details
 
-- 🔐 **Authentication** — Sign Up, Login, Logout with Firebase Auth
-- 📊 **Dashboard** — View all expenses with stats (today, monthly, all-time)
-- ➕ **Add/Edit Expenses** — Full form with category selection, date, notes
-- 🗂️ **Categories** — 8 default categories + create custom ones
-- 🔍 **Filter** — Filter by category and/or date range
-- 📄 **PDF Export** — Download filtered expense report as PDF
-- 👤 **Profile** — View account info and spending stats
-- 🗑️ **Delete** — Remove expenses with confirmation
-- 📱 **Android APK** — Build and distribute via Codemagic CI/CD
+## Tech Stack
 
----
+- Ionic 6
+- Angular 15
+- AngularFire 7 (`compat` APIs)
+- Firebase Auth + Cloud Firestore
+- Capacitor 5
+- jsPDF + jspdf-autotable
 
-## 🚀 Setup Instructions
+## Prerequisites
 
-### Step 1: Install Node.js v22+
+- Node.js LTS (recommended)
+- Ionic CLI
 
-Make sure you have Node.js v22 or higher installed. You can use nvm:
 ```bash
-nvm install 22
-nvm use 22
+npm install -g @ionic/cli
 ```
 
-### Step 2: Install Ionic CLI
+## Getting Started
+
+1. Clone the repo
 
 ```bash
-npm install -g @ionic/cli@7
-```
-
-### Step 3: Install Dependencies
-
-```bash
+git clone <your-repo-url>
 cd expense-tracker
-yarn install
 ```
 
-### Step 4: Create Firebase Project
+2. Install dependencies
 
-1. Go to [https://console.firebase.google.com](https://console.firebase.google.com)
-2. Click **"Add Project"** → Enter project name → Create
-3. Go to **Authentication** → **Sign-in method** → Enable **Email/Password**
-4. Go to **Firestore Database** → **Create database** → Start in **test mode**
-5. Go to **Project Settings** → **General** → scroll to **"Your apps"**
-6. Click the **web icon (`</>`)** to register a web app
-7. Copy the Firebase config
+```bash
+npm install
+```
 
-### Step 5: Add Firebase Config
+3. Configure Firebase
 
-Open `src/environments/environment.ts` and replace with your config:
+- Create a Firebase project
+- Enable Email/Password sign-in in Authentication
+- Create Firestore database
+- Add your Firebase web config to:
+- `src/environments/environment.ts`
+- `src/environments/environment.prod.ts`
 
-```typescript
+Example:
+
+```ts
 export const environment = {
   production: false,
   firebase: {
-    apiKey: "YOUR_ACTUAL_API_KEY",
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef"
+    apiKey: 'YOUR_API_KEY',
+    authDomain: 'YOUR_PROJECT.firebaseapp.com',
+    projectId: 'YOUR_PROJECT',
+    storageBucket: 'YOUR_PROJECT.firebasestorage.app',
+    messagingSenderId: '...',
+    appId: '...'
   }
 };
 ```
 
-Do the same for `src/environments/environment.prod.ts`.
+4. Apply Firestore rules and indexes
 
-### Step 6: Set Firestore Security Rules
+- Rules file: `firestore.rules`
+- Indexes file: `firestore.indexes.json`
 
-In Firebase Console → Firestore → **Rules** tab, paste the contents of `firestore.rules`.
-
-### Step 7: Set Firestore Indexes
-
-In Firebase Console → Firestore → **Indexes** tab → Import `firestore.indexes.json`, OR create manually:
-- Collection: `expenses`, Fields: `userId ASC`, `date DESC`
-- Collection: `categories`, Fields: `userId ASC`, `name ASC`
-
-### Step 8: Run the App
+5. Run the app
 
 ```bash
 ionic serve
 ```
 
-Open [http://localhost:8100](http://localhost:8100) in your browser.
+App runs at `http://localhost:8100`.
 
----
+## Main Routes
 
-## 📱 Build Android APK (via Codemagic)
+- `/` → auth loading page
+- `/login` → login (public only)
+- `/signup` → sign up (public only)
+- `/tabs/dashboard` → dashboard
+- `/tabs/profile` → profile
+- `/tabs/categories` → categories
+- `/add-expense` and `/tabs/add-expense` → add/edit expense page
 
-### Local Setup (One-time)
+## Data Model (Firestore)
+
+`users/{uid}`
+- `firstName`, `lastName`, `email`, `createdAt`
+
+`categories/{id}`
+- `name`, `icon`, `color`, `userId`, `isDefault`, `createdAt`
+
+`expenses/{id}`
+- `title`, `amount`, `categoryId`, `categoryName`, `categoryIcon`, `categoryColor`, `date`, `notes`, `userId`, `createdAt`
+
+## Default Categories
+
+Created automatically when a new user signs up:
+
+- Food & Dining
+- Transportation
+- Shopping
+- Entertainment
+- Health
+- Bills & Utilities
+- Education
+- Other
+
+## Build
+
+Web build:
 
 ```bash
-# Build web assets
-yarn build
+npm run build
+```
 
-# Initialize Capacitor (if not done)
-npx cap init
+Android sync/build (Capacitor):
 
-# Add Android platform
-npx cap add android
-
-# Sync web build to Android
+```bash
 npx cap sync android
-
-# Push to GitHub
-git add .
-git commit -m "Added Capacitor Android setup"
-git push origin master
+npx cap open android
 ```
 
-### Codemagic CI/CD
+## Project Structure
 
-This project uses `codemagic.yaml` at the root for automated APK builds.
-
-1. Connect your GitHub repo to [codemagic.io](https://codemagic.io)
-2. Select the `master` branch
-3. Select the `codemagic.yaml` workflow
-4. Click **Start new build**
-5. Once build succeeds, download `app-debug.apk` from the **Artifacts** section
-
-### Install APK on Android Phone
-
-1. Download the APK from Codemagic
-2. Transfer to your phone via USB or Google Drive
-3. On your phone: **Settings → Security → Enable "Install from Unknown Sources"**
-4. Open the APK and click **Install**
-
----
-
-## 📁 Project Structure
-
+```text
+src/app/
+├── guards/
+│   ├── auth.guard.ts
+│   └── public.guard.ts
+├── models/
+│   └── models.ts
+├── pages/
+│   ├── auth-loading/
+│   ├── login/
+│   ├── signup/
+│   ├── tabs/
+│   ├── dashboard/
+│   ├── add-expense/
+│   ├── categories/
+│   └── profile/
+└── services/
+    ├── auth.service.ts
+    ├── expense.service.ts
+    ├── category.service.ts
+    └── export.service.ts
 ```
-expense-tracker/
-├── android/                           # Capacitor Android project
-├── www/                               # Web build output
-├── src/
-│   ├── app/
-│   │   ├── guards/
-│   │   │   └── auth.guard.ts          # Route protection
-│   │   ├── models/
-│   │   │   └── models.ts              # TypeScript interfaces
-│   │   ├── pages/
-│   │   │   ├── signup/                # Sign up page
-│   │   │   ├── login/                 # Login page
-│   │   │   ├── tabs/                  # Tab bar layout
-│   │   │   ├── dashboard/             # Main expense list + stats
-│   │   │   ├── add-expense/           # Add/Edit expense form
-│   │   │   ├── categories/            # Manage categories
-│   │   │   └── profile/               # User profile & stats
-│   │   ├── services/
-│   │   │   ├── auth.service.ts        # Firebase Auth
-│   │   │   ├── expense.service.ts     # Firestore expenses CRUD
-│   │   │   ├── category.service.ts    # Firestore categories CRUD
-│   │   │   └── export.service.ts      # PDF generation
-│   │   ├── app.module.ts
-│   │   ├── app-routing.module.ts
-│   │   └── app.component.ts
-│   ├── environments/
-│   │   ├── environment.ts             # ← ADD YOUR FIREBASE CONFIG HERE
-│   │   └── environment.prod.ts
-│   ├── global.scss
-│   └── theme/variables.scss
-├── codemagic.yaml                     # Codemagic CI/CD config
-├── capacitor.config.ts                # Capacitor configuration
-├── firestore.rules                    # Security rules
-├── firestore.indexes.json             # Composite indexes
-├── angular.json                       # Angular configuration
-└── package.json
-```
-
----
-
-## 🗄️ Firestore Data Structure
-
-```
-/users/{uid}
-  - firstName, lastName, email, createdAt
-
-/categories/{id}
-  - name, icon, color, userId, isDefault, createdAt
-
-/expenses/{id}
-  - title, amount, categoryId, categoryName, categoryIcon
-  - categoryColor, date, notes, userId, createdAt
-```
-
----
-
-## 🔧 Default Categories
-
-When a user signs up, 8 default categories are automatically created:
-- 🍽️ Food & Dining
-- 🚗 Transportation
-- 🛍️ Shopping
-- 🎮 Entertainment
-- 💊 Health
-- 📄 Bills & Utilities
-- 📚 Education
-- ⋯ Other
-
----
-
-## 📦 Build for Production
-
-```bash
-yarn build --prod
-```
-
----
-
-## 🛠️ Tech Stack
-
-| Technology | Version | Purpose |
-|---|---|---|
-| Ionic | 6.x | UI Framework |
-| Angular | 15.x | Frontend Framework |
-| Firebase Auth | 9.x | Authentication |
-| Cloud Firestore | 9.x | Database |
-| AngularFire | 7.x | Firebase + Angular integration |
-| Capacitor | 5.x | Native Android/iOS bridge |
-| jsPDF | 2.x | PDF Export |
-| Codemagic | - | CI/CD & APK builds |
-| Node.js | 22.x | Runtime |

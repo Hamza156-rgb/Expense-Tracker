@@ -33,6 +33,7 @@
             <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" class="toggle-icon" (click)="showPassword = !showPassword"></ion-icon>
           </div>
           <span class="error-text" *ngIf="getFieldError('password')">{{ getFieldError('password') }}</span>
+          <button type="button" class="forgot-password" (click)="onForgotPassword()">Forgot password?</button>
         </div>
 
         <!-- Login Button -->
