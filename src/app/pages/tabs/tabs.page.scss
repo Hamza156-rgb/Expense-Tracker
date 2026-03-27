@@ -9,7 +9,7 @@ ion-tab-bar {
 
 ion-tab-button {
   --color: #94a3b8;
-  --color-selected: #667eea;
+  --color-selected: var(--ion-color-primary);
 
   ion-label {
     font-size: 11px;
@@ -30,12 +30,12 @@ ion-tab-button {
   .fab-center {
     width: 52px;
     height: 52px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0f6cbd 0%, #0f766e 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 18px rgba(102,126,234,0.5);
+    box-shadow: 0 4px 18px rgba(15,108,189,0.5);
 
     ion-icon {
       font-size: 26px;

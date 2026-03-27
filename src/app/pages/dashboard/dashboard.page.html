@@ -43,7 +43,7 @@
 
 
 
-<ion-content fullscreen="true">
+<ion-content fullscreen="true" class="dashboard-content">
   <!-- FILTER TOOLBAR -->
   <div class="tbar">
     <button type="button" class="tbtn" [class.tbtn-on]="showFilterPanel" (click)="showFilterPanel = !showFilterPanel">
@@ -100,14 +100,32 @@
     <span class="lhdr-count">{{ filteredExpenses.length }}</span>
   </div>
 
+  <!-- SKELETON LOADING -->
+  <div class="skeleton-wrap" *ngIf="isLoading">
+    <div class="skeleton-card" *ngFor="let _ of [1,2,3,4]">
+      <div class="sk-ico"></div>
+      <div class="sk-mid">
+        <div class="sk-line sk-line-lg"></div>
+        <div class="sk-line sk-line-sm"></div>
+      </div>
+      <div class="sk-right">
+        <div class="sk-line sk-line-amt"></div>
+        <div class="sk-actions">
+          <div class="sk-btn"></div>
+          <div class="sk-btn"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- EMPTY STATE -->
-  <div class="empty" *ngIf="filteredExpenses.length === 0">
+  <div class="empty" *ngIf="!isLoading && filteredExpenses.length === 0">
     <ion-icon name="receipt-outline"></ion-icon>
     <p>{{ filterActive ? 'No results. Try clearing filters.' : 'No expenses yet. Tap + to add one.' }}</p>
   </div>
 
   <!-- EXPENSE LIST -->
-  <div class="elist">
+  <div class="elist" *ngIf="!isLoading && filteredExpenses.length > 0">
     <div class="ecard" *ngFor="let e of filteredExpenses">
       <div class="eico"
            [style.background]="getCategoryColor(e.categoryId) + '22'"
@@ -144,7 +162,7 @@
 
 <!-- <ion-fab vertical="bottom" horizontal="end" slot="fixed">
   <ion-fab-button (click)="addExpense()"
-    style="--background: linear-gradient(135deg,#667eea,#764ba2); --box-shadow: 0 6px 20px rgba(102,126,234,.5);">
+    style="--background: linear-gradient(135deg,#0f6cbd,#0f766e); --box-shadow: 0 6px 20px rgba(15,108,189,.5);">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab> -->

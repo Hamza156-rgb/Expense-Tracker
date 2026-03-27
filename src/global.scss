@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap');
+
 @import "~@ionic/angular/css/core.css";
 @import "~@ionic/angular/css/normalize.css";
 @import "~@ionic/angular/css/structure.css";
@@ -13,21 +15,34 @@
   box-sizing: border-box;
 }
 
+body {
+  background: var(--mm-bg);
+  color: var(--mm-text);
+}
+
 ion-tab-bar {
   --background: #ffffff;
-  border-top: 1px solid #e8ecf0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--mm-border);
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
   padding-bottom: env(safe-area-inset-bottom);
   height: 60px;
 }
 
 ion-tab-button {
-  --color: #94a3b8;
-  --color-selected: #667eea;
+  --color: #7d8da4;
+  --color-selected: var(--ion-color-primary);
+  font-weight: 700;
 }
 
 ion-loading {
   --background: rgba(255, 255, 255, 0.95);
-  --spinner-color: #667eea;
+  --spinner-color: var(--ion-color-primary);
   --backdrop-opacity: 0.4;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
 }

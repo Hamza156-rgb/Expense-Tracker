@@ -1,9 +1,11 @@
 .add-expense-content {
-  --background: #f0f4f8;
+  --background: var(--mm-bg);
 }
 
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.2) 0, transparent 36%),
+    linear-gradient(140deg, #0f6cbd 0%, #0369a1 55%, #0f766e 100%);
   padding: 50px 20px 30px;
   display: flex;
   align-items: center;
@@ -68,7 +70,7 @@
   color: #374151;
   margin-bottom: 10px;
 
-  ion-icon { font-size: 16px; color: #667eea; }
+  ion-icon { font-size: 16px; color: var(--ion-color-primary); }
 }
 
 .input-wrapper {
@@ -81,8 +83,8 @@
   transition: all 0.2s;
 
   &:focus-within {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102,126,234,0.12);
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 3px rgba(15,108,189,0.12);
     background: white;
   }
 
@@ -91,7 +93,7 @@
   &.amount-wrapper .currency-prefix {
     font-size: 13px;
     font-weight: 700;
-    color: #667eea;
+    color: var(--ion-color-primary);
     margin-right: 8px;
     flex-shrink: 0;
   }
@@ -173,15 +175,15 @@
   }
 
   &.selected {
-    border-color: var(--cat-color, #667eea);
-    background: rgba(102,126,234,0.05);
+    border-color: var(--cat-color, var(--ion-color-primary));
+    background: rgba(15,108,189,0.05);
 
     .cat-icon-wrap {
-      background: var(--cat-color, #667eea);
+      background: var(--cat-color, var(--ion-color-primary));
       ion-icon { color: white; }
     }
 
-    span { color: var(--cat-color, #667eea); }
+    span { color: var(--cat-color, var(--ion-color-primary)); }
   }
 }
 
@@ -216,14 +218,14 @@
   justify-content: center;
   gap: 8px;
   padding: 14px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #0f6cbd, #0f766e);
   border: none;
   border-radius: 14px;
   font-size: 15px;
   font-weight: 600;
   color: white;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+  box-shadow: 0 4px 15px rgba(15,108,189,0.4);
   transition: transform 0.2s;
 
   ion-icon { font-size: 18px; }

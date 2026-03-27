@@ -15,6 +15,7 @@ import { Expense, Category, ExpenseFilter, User } from '../../models/models';
 })
 export class DashboardPage implements OnInit, OnDestroy {
   user: User | null = null;
+  isLoading = true;
   expenses: Expense[] = [];
   filteredExpenses: Expense[] = [];
   categories: Category[] = [];
@@ -63,6 +64,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   loadData(userId: string) {
+    this.isLoading = true;
     const combined = combineLatest([
       this.expenseService.getExpenses(userId),
       this.categoryService.getCategories(userId)
@@ -71,6 +73,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       this.categories = categories;
       this.applyFilter();
       this.calculateStats();
+      this.isLoading = false;
     });
     this.subs.push(combined);
   }
