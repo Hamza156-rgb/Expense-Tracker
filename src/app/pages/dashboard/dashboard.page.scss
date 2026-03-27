@@ -272,6 +272,39 @@ ion-content {
   gap: 8px;
 }
 
+.quick-date-strip {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 7px;
+  margin: 10px 12px 0;
+  padding: 0 2px 2px;
+}
+
+.qchip {
+  all: unset;
+  cursor: pointer;
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--mm-border);
+  background: #f7fbff;
+  color: #526379;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.qchip-on {
+  background: rgba(15, 108, 189, 0.14);
+  border-color: rgba(15, 108, 189, 0.25);
+  color: var(--ion-color-primary);
+}
+
 .fp-dash {
   color: #b9c6d6;
   font-size: 16px;
