@@ -361,6 +361,28 @@ export class DashboardPage implements OnInit, OnDestroy {
       return;
     }
 
+    const alert = await this.alertCtrl.create({
+      header: 'Export Report',
+      message: 'Would you like to save the report to your documents or share it?',
+      buttons: [
+        {
+          text: 'Save to Device',
+          handler: () => this.performExport('save')
+        },
+        {
+          text: 'Share',
+          handler: () => this.performExport('share')
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async performExport(action: 'save' | 'share') {
     try {
       await this.exportService.exportToPDF(
         this.filteredExpenses,
@@ -374,6 +396,7 @@ export class DashboardPage implements OnInit, OnDestroy {
             .map(cat => cat.name)
         },
         `${this.user?.firstName || ''} ${this.user?.lastName || ''}`,
+        action,
         {
           workspaceType: this.user?.accountMode === 'business' ? 'business' : 'personal',
           workspaceLabel: this.user?.accountMode === 'business' ? 'Business' : 'Personal',
@@ -381,7 +404,8 @@ export class DashboardPage implements OnInit, OnDestroy {
         }
       );
 
-      this.showToast('PDF exported successfully!', 'success');
+      const msg = action === 'save' ? 'Report saved to Documents!' : 'Report ready to share!';
+      this.showToast(msg, 'success');
 
     } catch (err) {
       console.error(err);

@@ -17,6 +17,7 @@ export class ExportService {
     expenses: Expense[],
     filter: ExpenseFilter & { datePresetLabel?: string; categoryNames?: string[] },
     userName: string,
+    action: 'save' | 'share',
     meta?: ExportReportMeta
   ): Promise<void> {
 
@@ -185,10 +186,10 @@ export class ExportService {
       savedFile = await Filesystem.writeFile({
         path: fileName,
         data: pdfBase64,
-        directory: Directory.Documents,
+        directory: action === 'save' ? Directory.Documents : Directory.Cache,
       });
     } catch (e1) {
-      // Some Android devices/versions can fail writing to Documents; Cache is a safe fallback.
+      // Fallback for different Android versions/permissions
       try {
         savedFile = await Filesystem.writeFile({
           path: fileName,
@@ -200,7 +201,12 @@ export class ExportService {
       }
     }
 
-    // Open Share Sheet (Best UX)
+    if (action === 'save') {
+      // Just notify user it's saved to Documents
+      return;
+    }
+
+    // Open Share Sheet
     try {
       await Share.share({
         title: `${this.getWorkspaceShareTitle(meta)} Expense Report`,
