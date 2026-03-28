@@ -43,6 +43,46 @@ export class CategoryService {
     return stream.asObservable();
   }
 
+  async seedDefaultCategories(userId: string, scope: WorkspaceScope): Promise<void> {
+    const personalDefaults = [
+      { name: 'Food & Dining', icon: 'restaurant', color: '#ef4444' },
+      { name: 'Transportation', icon: 'car', color: '#f59e0b' },
+      { name: 'Shopping', icon: 'bag-handle', color: '#8b5cf6' },
+      { name: 'Entertainment', icon: 'game-controller', color: '#3b82f6' },
+      { name: 'Health', icon: 'medical', color: '#10b981' },
+      { name: 'Bills & Utilities', icon: 'receipt', color: '#f97316' },
+      { name: 'Education', icon: 'book', color: '#06b6d4' },
+      { name: 'Other', icon: 'ellipsis-horizontal', color: '#64748b' },
+    ];
+
+    const businessDefaults = [
+      { name: 'Inventory', icon: 'cube', color: '#ef4444' },
+      { name: 'Rent', icon: 'home', color: '#f59e0b' },
+      { name: 'Utilities', icon: 'flash', color: '#3b82f6' },
+      { name: 'Salaries', icon: 'people', color: '#8b5cf6' },
+      { name: 'Marketing', icon: 'megaphone', color: '#10b981' },
+      { name: 'Maintenance', icon: 'construct', color: '#f97316' },
+      { name: 'Taxes', icon: 'calculator', color: '#06b6d4' },
+      { name: 'Other', icon: 'ellipsis-horizontal', color: '#64748b' },
+    ];
+
+    const defaults = scope.workspaceType === 'business' ? businessDefaults : personalDefaults;
+
+    const batch = this.afs.firestore.batch();
+    defaults.forEach(cat => {
+      const ref = this.afs.collection('categories').doc().ref;
+      batch.set(ref, {
+        ...cat,
+        userId,
+        workspaceType: scope.workspaceType,
+        workspaceId: scope.workspaceId,
+        isDefault: true,
+        createdAt: new Date()
+      });
+    });
+    await batch.commit();
+  }
+
   async addCategory(category: Omit<Category, 'id'>): Promise<void> {
     const normalized = this.normalizeCategoryInput(category);
     const scopeKey = this.getScopeKey(normalized.userId, this.resolveScope(normalized));

@@ -3,6 +3,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
+import { CategoryService } from '../../services/category.service';
 
 @Component({
   selector: 'app-workspace-mode',
@@ -20,7 +21,8 @@ export class WorkspaceModePage implements OnInit {
     private afs: AngularFirestore,
     private router: Router,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private categoryService: CategoryService
   ) {}
 
   async ngOnInit() {
@@ -65,8 +67,25 @@ export class WorkspaceModePage implements OnInit {
 
       // Preserve business profile values when user temporarily switches to personal mode.
       if (this.selectedMode === 'business') {
+        const workspaceId = this.existingBusinessWorkspaceId || this.toWorkspaceId(shopName);
         payload.businessName = shopName;
-        payload.businessWorkspaceId = this.existingBusinessWorkspaceId || this.toWorkspaceId(shopName);
+        payload.businessWorkspaceId = workspaceId;
+
+        // Check if categories already exist for this business workspace
+        const categoriesRef = this.afs.collection('categories', ref =>
+          ref.where('userId', '==', this.userId)
+             .where('workspaceId', '==', workspaceId)
+             .limit(1)
+        );
+        const categoriesSnapshot = await categoriesRef.get().toPromise();
+        
+        if (categoriesSnapshot && categoriesSnapshot.empty) {
+          // No categories found, seed defaults for business
+          await this.categoryService.seedDefaultCategories(this.userId, {
+            workspaceType: 'business',
+            workspaceId: workspaceId
+          });
+        }
       }
 
       await this.afs.doc(`users/${this.userId}`).set(payload, { merge: true });

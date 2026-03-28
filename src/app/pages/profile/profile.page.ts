@@ -63,6 +63,8 @@ export class ProfilePage implements OnInit, OnDestroy {
       const minDate = new Date(Math.min(...dates));
       const daysDiff = Math.max(1, Math.ceil((today.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24)));
       this.avgPerDay = this.totalAmount / daysDiff;
+    } else {
+      this.avgPerDay = 0;
     }
   }
 
