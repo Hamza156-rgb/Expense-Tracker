@@ -1,4 +1,3 @@
-
 <ion-header translucent="true">
 
   <!-- HEADER -->
@@ -15,12 +14,12 @@
         </div>
       </div>
       <div class="hdr-actions">
-        <button type="button" class="hbtn ai-btn" (click)="goToAssistant()" aria-label="Open AI Assistant">
+        <!-- <button type="button" class="hbtn ai-btn" (click)="goToAssistant()" aria-label="Open AI Assistant">
           <ion-icon name="sparkles-outline"></ion-icon>
         </button>
         <button type="button" class="hbtn" (click)="goToCategories()" aria-label="Open Categories">
           <ion-icon name="grid-outline"></ion-icon>
-        </button>
+        </button> -->
         <button type="button" class="hbtn" (click)="goToSettings()" aria-label="Open Settings">
           <ion-icon name="settings-outline"></ion-icon>
         </button>
@@ -106,7 +105,7 @@
         <ion-icon name="close-circle"></ion-icon>
       </button>
     </div>
-    
+
     <div class="tbar-btns">
       <button type="button" class="tbtn" [class.tbtn-on]="showFilterPanel" (click)="showFilterPanel = !showFilterPanel">
         <ion-icon name="funnel-outline"></ion-icon>
@@ -133,12 +132,8 @@
 
   <!-- QUICK DATE FILTERS -->
   <div class="quick-date-strip">
-    <button
-      type="button"
-      class="qchip"
-      *ngFor="let quick of quickDateFilters"
-      [class.qchip-on]="activeQuickDateFilter === quick.key"
-      (click)="applyQuickDateFilter(quick.key)">
+    <button type="button" class="qchip" *ngFor="let quick of quickDateFilters"
+      [class.qchip-on]="activeQuickDateFilter === quick.key" (click)="applyQuickDateFilter(quick.key)">
       {{ quick.label }}
     </button>
   </div>
@@ -148,13 +143,8 @@
     <div class="fp-block">
       <div class="fp-title">Categories</div>
       <div class="fp-chips">
-        <button
-          type="button"
-          *ngFor="let cat of categories"
-          class="chip"
-          [class.chip-on]="isCategorySelected(cat.id!)"
-          [style.--cc]="cat.color"
-          (click)="toggleCategoryFilter(cat.id!)">
+        <button type="button" *ngFor="let cat of categories" class="chip" [class.chip-on]="isCategorySelected(cat.id!)"
+          [style.--cc]="cat.color" (click)="toggleCategoryFilter(cat.id!)">
           <ion-icon [name]="cat.icon"></ion-icon>
           {{ cat.name }}
         </button>
@@ -220,20 +210,18 @@
         <ion-icon name="calendar-clear-outline"></ion-icon>
         {{ group.dateLabel }}
       </div>
-      
+
       <ion-item-sliding *ngFor="let e of group.expenses; trackBy: trackByExpense" class="ecard-slider" #slidingItem>
         <ion-item class="ecard-item" lines="none" detail="false">
           <div class="ecard">
-            <div class="eico"
-                 [style.background]="getCategoryColor(e.categoryId) + '22'"
-                 [style.color]="getCategoryColor(e.categoryId)">
+            <div class="eico" [style.background]="getCategoryColor(e.categoryId) + '22'"
+              [style.color]="getCategoryColor(e.categoryId)">
               <ion-icon [name]="getCategoryIcon(e.categoryId)"></ion-icon>
             </div>
             <div class="emid">
               <div class="etitle">{{ e.title }}</div>
               <div class="emeta">
-                <span class="ecat"
-                  [style.background]="getCategoryColor(e.categoryId) + '20'"
+                <span class="ecat" [style.background]="getCategoryColor(e.categoryId) + '20'"
                   [style.color]="getCategoryColor(e.categoryId)">
                   {{ getCategoryName(e.categoryId) }}
                 </span>
@@ -260,7 +248,7 @@
 
 
 
-<!-- <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <!-- <ion-fab vertical="bottom" horizontal="end" slot="fixed">
   <ion-fab-button (click)="addExpense()"
     style="--background: linear-gradient(135deg,var(--ion-color-primary),var(--ion-color-secondary)); --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb),.5);">
     <ion-icon name="add"></ion-icon>
