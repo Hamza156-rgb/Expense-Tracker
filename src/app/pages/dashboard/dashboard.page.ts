@@ -122,7 +122,12 @@ export class DashboardPage implements OnInit, OnDestroy {
       filtered = filtered.filter(e => new Date(e.date) <= end);
     }
 
-    this.filteredExpenses = filtered;
+    this.filteredExpenses = filtered.sort((a, b) => {
+      const d1 = new Date(a.date).getTime();
+      const d2 = new Date(b.date).getTime();
+      if (d1 !== d2) return d2 - d1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
     this.filterActive = this.selectedCategoryIds.length > 0 || !!this.startDateStr || !!this.endDateStr;
     this.totalAmount = filtered.reduce((sum, e) => sum + e.amount, 0);
     this.updateAIInsights();

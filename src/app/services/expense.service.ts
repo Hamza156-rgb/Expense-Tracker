@@ -201,11 +201,13 @@ export class ExpenseService {
       )
     ).subscribe(expenses => {
       const scopedExpenses = expenses.filter(item => this.matchesExpenseScope(item, scope));
+      const sorted = this.sortExpenses(scopedExpenses);
+
       const stream = this.streams.get(scopeKey);
       if (stream) {
-        stream.next(scopedExpenses);
+        stream.next(sorted);
       }
-      this.writeCachedExpenses(scopeKey, scopedExpenses);
+      this.writeCachedExpenses(scopeKey, sorted);
     });
 
     this.serverSubs.set(scopeKey, sub);
@@ -235,8 +237,18 @@ export class ExpenseService {
       this.streams.set(scopeKey, stream);
     }
     const next = updater(stream.value);
-    stream.next(next);
-    this.writeCachedExpenses(scopeKey, next);
+    const sorted = this.sortExpenses(next);
+    stream.next(sorted);
+    this.writeCachedExpenses(scopeKey, sorted);
+  }
+
+  private sortExpenses(expenses: Expense[]): Expense[] {
+    return [...expenses].sort((a, b) => {
+      const t1 = new Date(a.date).getTime();
+      const t2 = new Date(b.date).getTime();
+      if (t1 !== t2) return t2 - t1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }
 
   private findScopeKeyForExpense(expenseId: string): string | null {
