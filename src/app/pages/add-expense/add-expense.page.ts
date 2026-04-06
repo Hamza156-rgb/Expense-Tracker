@@ -56,17 +56,17 @@ export class AddExpensePage implements OnInit, OnDestroy {
     this.authSub = this.authService.user$.subscribe(user => {
       this.currentUser = user;
       this.categoriesSub?.unsubscribe();
-      this.loadExpenseSub?.unsubscribe();
       this.categories = [];
       if (!user) return;
       this.userId = user.uid;
 
       this.categoriesSub = this.categoryService.getCategories(user.uid, this.getWorkspaceScope(user)).subscribe(cats => {
-        this.categories = cats; // now correctly typed
+        this.categories = cats;
         this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
       });
 
-      if (this.isEditMode && this.editId) {
+      // If user is ready and we have an editId from queryParams, load it
+      if (this.editId) {
         this.loadExpense(this.editId);
       }
     });
@@ -79,10 +79,29 @@ export class AddExpensePage implements OnInit, OnDestroy {
     }
   
     this.route.queryParams.subscribe(params => {
-      if (params['id']) {
-        this.editId = params['id'];
+      const id = params['id'];
+      if (id) {
+        this.editId = id;
         this.isEditMode = true;
+        // If user is already loaded, we can call loadExpense immediately
+        if (this.userId) {
+          this.loadExpense(id);
+        }
+      } else {
+        this.resetForm();
       }
+    });
+  }
+
+  private resetForm() {
+    this.editId = null;
+    this.isEditMode = false;
+    this.expenseForm.reset({
+      title: '',
+      amount: '',
+      categoryId: '',
+      date: this.today,
+      notes: ''
     });
   }
 
@@ -112,25 +131,35 @@ export class AddExpensePage implements OnInit, OnDestroy {
     const loading = await this.loadingCtrl.create({ message: 'Loading...' });
     await loading.present();
     this.loadExpenseSub?.unsubscribe();
-    this.loadExpenseSub = this.expenseService.getExpenses(this.userId, this.getWorkspaceScope(this.currentUser!)).subscribe(expenses => {
-      const expense = expenses.find(e => e.id === id);
-      if (expense) {
-        const d = new Date(expense.date);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const dateStr = `${y}-${m}-${day}`;
-        this.expenseForm.patchValue({
-          title: expense.title,
-          amount: expense.amount,
-          categoryId: expense.categoryId,
-          date: dateStr,
-          notes: expense.notes || ''
-        });
-      }
-      loading.dismiss();
-      this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
-    });
+    this.loadExpenseSub = this.expenseService
+      .getExpenses(this.userId, this.getWorkspaceScope(this.currentUser!))
+      .subscribe(expenses => {
+        const expense = expenses.find(e => e.id === id);
+        if (expense) {
+          // Unsubscribe immediately once found to prevent background updates overwriting user edits
+          this.loadExpenseSub?.unsubscribe();
+          
+          this.expenseForm.patchValue({
+            title: expense.title,
+            amount: expense.amount,
+            categoryId: expense.categoryId,
+            date: this.formatToDateInput(expense.date),
+            notes: expense.notes || ''
+          });
+          this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
+        }
+        loading.dismiss();
+      });
+  }
+
+  private formatToDateInput(date: any): string {
+    if (!date) return this.today;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return this.today;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   async onSubmit() {
@@ -146,24 +175,32 @@ export class AddExpensePage implements OnInit, OnDestroy {
       const { title, amount, categoryId, date, notes } = this.expenseForm.value;
       const selectedCategory = this.categories.find(c => c.id === categoryId);
 
-      const expenseData = {
+      // Create a local Date object from the YYYY-MM-DD string to avoid UTC shifts
+      const dateParts = date.split('-');
+      const localDate = new Date(
+        parseInt(dateParts[0], 10),
+        parseInt(dateParts[1], 10) - 1,
+        parseInt(dateParts[2], 10)
+      );
+
+      const expenseData: any = {
         title: title.trim(),
         amount: Number(amount),
         categoryId,
         categoryName: selectedCategory?.name,
         categoryIcon: selectedCategory?.icon,
         categoryColor: selectedCategory?.color,
-        date: new Date(date),
+        date: localDate,
         notes: notes.trim(),
         userId: this.userId,
         workspaceType: this.getWorkspaceScope(this.currentUser).workspaceType,
-        workspaceId: this.getWorkspaceScope(this.currentUser).workspaceId,
-        createdAt: new Date()
+        workspaceId: this.getWorkspaceScope(this.currentUser).workspaceId
       };
 
       if (this.isEditMode && this.editId) {
         await this.expenseService.updateExpense(this.editId, expenseData);
       } else {
+        expenseData.createdAt = new Date();
         await this.expenseService.addExpense(expenseData);
       }
 

@@ -190,12 +190,12 @@ export class ExpenseService {
             categoryName: data.categoryName ?? '',
             categoryIcon: data.categoryIcon ?? '',
             categoryColor: data.categoryColor ?? '',
-            date: data.date instanceof Timestamp ? data.date.toDate() : new Date(data.date),
+            date: this.parseFirestoreDate(data.date),
             notes: data.notes ?? '',
             userId: data.userId ?? '',
             workspaceType: data.workspaceType ?? 'personal',
             workspaceId: data.workspaceId ?? 'personal',
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date()
+            createdAt: this.parseFirestoreDate(data.createdAt)
           } as Expense;
         })
       )
@@ -218,8 +218,8 @@ export class ExpenseService {
     const cached = this.offlineSync.readCache<any[]>(key, []);
     return cached.map(item => ({
       ...item,
-      date: item?.date ? new Date(item.date) : new Date(),
-      createdAt: item?.createdAt ? new Date(item.createdAt) : new Date(),
+      date: this.parseFirestoreDate(item?.date),
+      createdAt: this.parseFirestoreDate(item?.createdAt),
       workspaceType: item?.workspaceType ?? 'personal',
       workspaceId: item?.workspaceId ?? 'personal'
     })) as Expense[];
@@ -365,5 +365,18 @@ export class ExpenseService {
     const itemType = expense.workspaceType || this.personalScope.workspaceType;
     const itemId = expense.workspaceId || this.personalScope.workspaceId;
     return itemType === scope.workspaceType && itemId === scope.workspaceId;
+  }
+
+  private parseFirestoreDate(val: any): Date {
+    if (!val) return new Date();
+    // If it's a real Date
+    if (val instanceof Date) return val;
+    // If it's a Firestore Timestamp compat mode
+    if (typeof val.toDate === 'function') return val.toDate();
+    // If it's a raw object {seconds, nanoseconds}
+    if (val.seconds !== undefined) return new Date(val.seconds * 1000);
+    // If it's a string or number
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date() : d;
   }
 }

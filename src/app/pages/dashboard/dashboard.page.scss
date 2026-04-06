@@ -578,7 +578,30 @@ ion-content {
   padding: 0 12px 14px;
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+.egroup {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+
+.date-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #334155;
+  text-transform: capitalize;
+  
+  ion-icon {
+    font-size: 14px;
+    color: #0f6cbd;
+    opacity: 0.85;
+  }
 }
 
 .ecard {
@@ -635,12 +658,6 @@ ion-content {
   font-weight: 700;
   border-radius: 6px;
   padding: 2px 7px;
-}
-
-.edate {
-  font-size: 11px;
-  color: #7b8ca2;
-  font-weight: 600;
 }
 
 .enote {

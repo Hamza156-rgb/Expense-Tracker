@@ -28,6 +28,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   isLoading = true;
   expenses: Expense[] = [];
   filteredExpenses: Expense[] = [];
+  groupedExpenses: Array<{ dateLabel: string; expenses: Expense[] }> = [];
   categories: Category[] = [];
 
   filterActive = false;
@@ -84,6 +85,14 @@ export class DashboardPage implements OnInit, OnDestroy {
     return 'Personal Mode';
   }
 
+  trackByGroup(index: number, group: { dateLabel: string }) {
+    return group.dateLabel;
+  }
+
+  trackByExpense(index: number, expense: Expense) {
+    return expense.id;
+  }
+
   loadData(userId: string) {
     this.dataSub?.unsubscribe();
     this.isLoading = true;
@@ -113,12 +122,11 @@ export class DashboardPage implements OnInit, OnDestroy {
       filtered = filtered.filter(e => this.selectedCategoryIds.includes(e.categoryId));
     }
     if (this.startDateStr) {
-      const start = new Date(this.startDateStr);
+      const start = this.parseDateFromInput(this.startDateStr);
       filtered = filtered.filter(e => new Date(e.date) >= start);
     }
     if (this.endDateStr) {
-      const end = new Date(this.endDateStr);
-      end.setHours(23, 59, 59, 999);
+      const end = this.parseDateFromInput(this.endDateStr, true);
       filtered = filtered.filter(e => new Date(e.date) <= end);
     }
 
@@ -128,6 +136,23 @@ export class DashboardPage implements OnInit, OnDestroy {
       if (d1 !== d2) return d2 - d1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
+    // Update groupedExpenses
+    const groups: { [key: string]: Expense[] } = {};
+    const dateOrder: string[] = [];
+    this.filteredExpenses.forEach(e => {
+      const label = this.formatDate(e.date);
+      if (!groups[label]) {
+        groups[label] = [];
+        dateOrder.push(label);
+      }
+      groups[label].push(e);
+    });
+    this.groupedExpenses = dateOrder.map(dateLabel => ({
+      dateLabel,
+      expenses: groups[dateLabel]
+    }));
+
     this.filterActive = this.selectedCategoryIds.length > 0 || !!this.startDateStr || !!this.endDateStr;
     this.totalAmount = filtered.reduce((sum, e) => sum + e.amount, 0);
     this.updateAIInsights();
@@ -462,6 +487,21 @@ export class DashboardPage implements OnInit, OnDestroy {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private parseDateFromInput(dateStr: string, setToEndOfDay = false): Date {
+    const parts = dateStr.split('-');
+    const d = new Date(
+      parseInt(parts[0], 10),
+      parseInt(parts[1], 10) - 1,
+      parseInt(parts[2], 10)
+    );
+    if (setToEndOfDay) {
+      d.setHours(23, 59, 59, 999);
+    } else {
+      d.setHours(0, 0, 0, 0);
+    }
+    return d;
   }
 
   private getActiveDateFilterLabel(): string {
