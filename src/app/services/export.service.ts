@@ -62,26 +62,53 @@ export class ExportService {
       { align: 'right' }
     );
 
-    // ===== SUMMARY =====
+    // ===== SUMMARY BLOCK (Classic Dashboard Style) =====
     const total = sortedExpenses.reduce((s, e) => s + e.amount, 0);
     const average = sortedExpenses.length ? total / sortedExpenses.length : 0;
 
-    doc.setFillColor(244, 247, 251);
-    doc.roundedRect(14, 40, 182, 24, 3, 3, 'F');
-    doc.setDrawColor(219, 228, 239);
-    doc.roundedRect(14, 40, 182, 24, 3, 3, 'S');
+    // Background Panel
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, 40, 182, 26, 2, 2, 'F');
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(14, 40, 182, 26, 2, 2, 'S');
 
-    doc.setTextColor(15, 23, 42);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total: ${this.formatCurrency(total)}`, 20, 49);
-    doc.text(`Entries: ${sortedExpenses.length}`, 82, 49);
-    doc.text(`Average: ${this.formatCurrency(Math.round(average))}`, 138, 49);
+    // Dividers
+    doc.setDrawColor(226, 232, 240);
+    doc.line(74, 43, 74, 63);
+    doc.line(134, 43, 134, 63);
 
+    // Metric 1: Total
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(71, 85, 105);
-    doc.text(`Filters: ${this.getFilterSummary(filter)}`, 20, 57);
+    doc.setTextColor(100, 116, 139);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL EXPENSES', 44, 50, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setTextColor(15, 23, 42);
+    doc.text(this.formatCurrency(total), 44, 58, { align: 'center' });
+
+    // Metric 2: Entries
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL ENTRIES', 104, 50, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setTextColor(15, 23, 42);
+    doc.text(sortedExpenses.length.toString(), 104, 58, { align: 'center' });
+
+    // Metric 3: Average
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AVERAGE / ENTRY', 165, 50, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setTextColor(15, 23, 42);
+    doc.text(this.formatCurrency(Math.round(average)), 165, 58, { align: 'center' });
+
+    // Filters info slightly below the box
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Active Filters: ${this.getFilterSummary(filter)}`, 14, 72);
 
     // ===== TABLE =====
     const rows = sortedExpenses.map(e => [
@@ -116,12 +143,56 @@ export class ExportService {
     // ===== CATEGORY BREAKDOWN =====
     const categoryTotals = this.getCategoryTotals(sortedExpenses);
     if (categoryTotals.length > 0) {
-      const startY = ((doc as any).lastAutoTable?.finalY || 70) + 10;
+      let startY = ((doc as any).lastAutoTable?.finalY || 70) + 10;
       doc.setTextColor(15, 23, 42);
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.text('Category Breakdown', 14, startY);
 
+      // --- VISUAL BAR CHART ---
+      startY += 8;
+      const maxAmount = Math.max(...categoryTotals.map(c => c.amount));
+      const chartX = 14;
+      const chartWidth = 182;
+      const barHeight = 5;
+      const gap = 5;
+      const colors = [
+        [15, 163, 177], [29, 78, 216], [236, 72, 153], [245, 158, 11], 
+        [16, 185, 129], [139, 92, 246], [239, 68, 68], [107, 114, 128]
+      ];
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+
+      categoryTotals.forEach((item, index) => {
+         // Check page break for chart
+         if (startY > 270) {
+           doc.addPage();
+           startY = 20;
+         }
+
+         const barWidth = maxAmount > 0 ? (item.amount / maxAmount) * (chartWidth - 60) : 0; // space for labels
+         
+         // Category Label
+         doc.setTextColor(71, 85, 105);
+         let shortCategory = item.category.length > 15 ? item.category.substring(0, 15) + '...' : item.category;
+         doc.text(shortCategory, chartX, startY + 3.5);
+         
+         // Bar
+         const color = colors[index % colors.length];
+         doc.setFillColor(color[0], color[1], color[2]);
+         doc.roundedRect(chartX + 35, startY, barWidth > 2 ? barWidth : 2, barHeight, 1, 1, 'F');
+         
+         // Value Label
+         doc.setTextColor(15, 23, 42);
+         doc.text(this.formatCurrency(item.amount), chartX + 35 + barWidth + 3, startY + 3.5);
+         
+         startY += barHeight + gap;
+      });
+
+      startY += 5;
+
+      // --- CATEGORY TABLE ---
       (doc as any).autoTable({
         head: [['Category', 'Amount', 'Share']],
         body: categoryTotals.map(item => [
@@ -129,7 +200,7 @@ export class ExportService {
           this.formatCurrency(item.amount),
           `${Math.round((item.amount / total) * 100)}%`
         ]),
-        startY: startY + 4,
+        startY: startY,
         margin: { left: 14, right: 14 },
         styles: { fontSize: 9, cellPadding: 3 },
         headStyles: { fillColor: [15, 163, 177], textColor: [255, 255, 255] },
