@@ -828,11 +828,26 @@ ion-content {
   gap: 12px;
   box-shadow: var(--mm-shadow-sm);
   animation: riseIn 240ms ease-out both;
+
+  @media (max-width: 420px) {
+    padding: 10px 12px;
+    gap: 10px;
+  }
 }
 
 .opt-edit, .opt-del {
   margin: 4px 0 4px 10px;
   border-radius: 14px;
+
+  @media (max-width: 420px) {
+    --padding-start: 12px;
+    --padding-end: 12px;
+    margin-left: 6px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
 }
 
 .eico {
@@ -843,6 +858,16 @@ ion-content {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @media (max-width: 420px) {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
 
   ion-icon {
     font-size: 20px;
@@ -863,6 +888,11 @@ ion-content {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 420px) {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
 }
 
 .emeta {
@@ -900,6 +930,10 @@ ion-content {
   font-size: 14px;
   font-weight: 800;
   color: var(--mm-text);
+
+  @media (max-width: 420px) {
+    font-size: 13.5px;
+  }
 }
 
 .ebtns {
