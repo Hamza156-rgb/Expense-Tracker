@@ -44,7 +44,7 @@ export class ExportService {
     );
 
     // ===== HEADER =====
-    doc.setFillColor(15, 108, 189);
+    doc.setFillColor(11, 58, 83);
     doc.rect(0, 0, 210, 32, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
@@ -102,7 +102,7 @@ export class ExportService {
         cellPadding: 3
       },
       headStyles: {
-        fillColor: [15, 108, 189],
+        fillColor: [11, 58, 83],
         textColor: [255, 255, 255]
       },
       columnStyles: {
@@ -132,7 +132,7 @@ export class ExportService {
         startY: startY + 4,
         margin: { left: 14, right: 14 },
         styles: { fontSize: 9, cellPadding: 3 },
-        headStyles: { fillColor: [15, 118, 110], textColor: [255, 255, 255] },
+        headStyles: { fillColor: [15, 163, 177], textColor: [255, 255, 255] },
         columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
         alternateRowStyles: { fillColor: [248, 250, 252] }
       });

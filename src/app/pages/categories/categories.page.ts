@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController, LoadingController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
@@ -36,6 +36,7 @@ export class CategoriesPage implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private loadingCtrl: LoadingController,
     private router: Router
   ) {}
 
@@ -83,9 +84,15 @@ export class CategoriesPage implements OnInit, OnDestroy {
               toast.present();
               return false;
             }
+            const loading = await this.loadingCtrl.create({
+              message: isEdit ? 'Updating...' : 'Creating...',
+              spinner: 'crescent'
+            });
+            await loading.present();
             try {
               if (isEdit && category?.id) {
                 await this.categoryService.updateCategory(category.id, { name: data.name.trim() });
+                await loading.dismiss();
                 const toast = await this.toastCtrl.create({ message: 'Category updated!', duration: 2000, color: 'success', position: 'top' });
                 toast.present();
               } else {
@@ -100,11 +107,13 @@ export class CategoriesPage implements OnInit, OnDestroy {
                   createdAt: new Date()
                 };
                 await this.categoryService.addCategory(newCat);
+                await loading.dismiss();
                 const toast = await this.toastCtrl.create({ message: 'Category created!', duration: 2000, color: 'success', position: 'top' });
                 toast.present();
               }
               return true;
             } catch (error: any) {
+              await loading.dismiss();
               let message = 'Failed to save category';
               let color = 'danger';
 
@@ -145,11 +154,18 @@ export class CategoriesPage implements OnInit, OnDestroy {
           text: 'Delete',
           role: 'destructive',
           handler: async () => {
+            const loading = await this.loadingCtrl.create({
+              message: 'Deleting...',
+              spinner: 'crescent'
+            });
+            await loading.present();
             try {
               await this.categoryService.deleteCategory(category.id!);
+              await loading.dismiss();
               const toast = await this.toastCtrl.create({ message: 'Category deleted', duration: 2000, color: 'success', position: 'top' });
               toast.present();
             } catch {
+              await loading.dismiss();
               const toast = await this.toastCtrl.create({ message: 'Failed to delete', duration: 2000, color: 'danger', position: 'top' });
               toast.present();
             }

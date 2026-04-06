@@ -217,35 +217,40 @@
         {{ group.dateLabel }}
       </div>
       
-      <div class="ecard" *ngFor="let e of group.expenses; trackBy: trackByExpense">
-        <div class="eico"
-             [style.background]="getCategoryColor(e.categoryId) + '22'"
-             [style.color]="getCategoryColor(e.categoryId)">
-          <ion-icon [name]="getCategoryIcon(e.categoryId)"></ion-icon>
-        </div>
-        <div class="emid">
-          <div class="etitle">{{ e.title }}</div>
-          <div class="emeta">
-            <span class="ecat"
-              [style.background]="getCategoryColor(e.categoryId) + '20'"
-              [style.color]="getCategoryColor(e.categoryId)">
-              {{ getCategoryName(e.categoryId) }}
-            </span>
+      <ion-item-sliding *ngFor="let e of group.expenses; trackBy: trackByExpense" class="ecard-slider" #slidingItem>
+        <ion-item class="ecard-item" lines="none" detail="false">
+          <div class="ecard">
+            <div class="eico"
+                 [style.background]="getCategoryColor(e.categoryId) + '22'"
+                 [style.color]="getCategoryColor(e.categoryId)">
+              <ion-icon [name]="getCategoryIcon(e.categoryId)"></ion-icon>
+            </div>
+            <div class="emid">
+              <div class="etitle">{{ e.title }}</div>
+              <div class="emeta">
+                <span class="ecat"
+                  [style.background]="getCategoryColor(e.categoryId) + '20'"
+                  [style.color]="getCategoryColor(e.categoryId)">
+                  {{ getCategoryName(e.categoryId) }}
+                </span>
+              </div>
+              <div class="enote" *ngIf="e.notes">{{ e.notes }}</div>
+            </div>
+            <div class="eright">
+              <div class="eamt">{{ formatCurrency(e.amount) }}</div>
+            </div>
           </div>
-          <div class="enote" *ngIf="e.notes">{{ e.notes }}</div>
-        </div>
-        <div class="eright">
-          <div class="eamt">{{ formatCurrency(e.amount) }}</div>
-          <div class="ebtns">
-            <button type="button" class="ebtn ebtn-edit" (click)="editExpense(e)">
-              <ion-icon name="pencil-outline"></ion-icon>
-            </button>
-            <button type="button" class="ebtn ebtn-del" (click)="deleteExpense(e)">
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
-          </div>
-        </div>
-      </div>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option class="opt-edit" color="secondary" (click)="editExpense(e); slidingItem.close()">
+            <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+          </ion-item-option>
+          <ion-item-option class="opt-del" color="danger" (click)="deleteExpense(e, slidingItem)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
     </div>
   </div>
 

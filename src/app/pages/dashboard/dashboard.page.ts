@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController, LoadingController } from '@ionic/angular';
 import { Subscription, combineLatest } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
@@ -54,6 +54,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     private exportService: ExportService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private loadingCtrl: LoadingController,
     private router: Router
   ) { }
 
@@ -414,7 +415,10 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.applyFilter();
   }
 
-  async deleteExpense(expense: Expense) {
+  async deleteExpense(expense: Expense, slidingItem?: any) {
+    if (slidingItem) {
+      slidingItem.close();
+    }
     const alert = await this.alertCtrl.create({
       header: 'Delete Expense',
       message: `Delete "${expense.title}"? This cannot be undone.`,
@@ -424,10 +428,17 @@ export class DashboardPage implements OnInit, OnDestroy {
           text: 'Delete',
           role: 'destructive',
           handler: async () => {
+            const loading = await this.loadingCtrl.create({
+              message: 'Deleting...',
+              spinner: 'crescent'
+            });
+            await loading.present();
             try {
               await this.expenseService.deleteExpense(expense.id!);
+              await loading.dismiss();
               this.showToast('Expense deleted', 'success');
             } catch (err) {
+              await loading.dismiss();
               this.showToast('Failed to delete', 'danger');
             }
           }
