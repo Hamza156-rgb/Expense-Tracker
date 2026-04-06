@@ -59,20 +59,32 @@
 
 
 <ion-content fullscreen="true" class="dashboard-content">
-  <!-- FILTER TOOLBAR -->
+  <!-- SEARCH & FILTER TOOLBAR -->
   <div class="tbar">
-    <button type="button" class="tbtn" [class.tbtn-on]="showFilterPanel" (click)="showFilterPanel = !showFilterPanel">
-      <ion-icon name="funnel-outline"></ion-icon>
-      Filter
-      <span class="badge" *ngIf="filterActive">{{ getActiveFilterBadgeCount() }}</span>
-    </button>
-    <button type="button" class="tbtn-clear" *ngIf="filterActive" (click)="clearFilters()">
+    <div class="search-wrap">
+      <ion-icon name="search-outline"></ion-icon>
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" placeholder="Search expenses..." />
+      <button type="button" class="clear-search" *ngIf="searchQuery" (click)="searchQuery = ''; applyFilter()">
+        <ion-icon name="close-circle"></ion-icon>
+      </button>
+    </div>
+    
+    <div class="tbar-btns">
+      <button type="button" class="tbtn" [class.tbtn-on]="showFilterPanel" (click)="showFilterPanel = !showFilterPanel">
+        <ion-icon name="funnel-outline"></ion-icon>
+        <span class="badge" *ngIf="filterActive">{{ getActiveFilterBadgeCount() }}</span>
+      </button>
+      <button type="button" class="tbtn-pdf" (click)="downloadPDF()">
+        <ion-icon name="download-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ACTIVE FILTERS SUMMARY -->
+  <div class="active-filters-row" *ngIf="filterActive">
+    <button type="button" class="tbtn-clear" (click)="clearFilters()">
       <ion-icon name="close-outline"></ion-icon>
-      Clear
-    </button>
-    <button type="button" class="tbtn-pdf" (click)="downloadPDF()">
-      <ion-icon name="download-outline"></ion-icon>
-      Export
+      Clear All Filters
     </button>
   </div>
 

@@ -32,6 +32,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   categories: Category[] = [];
 
   filterActive = false;
+  searchQuery = '';
   selectedCategoryIds: string[] = [];
   startDateStr = '';
   endDateStr = '';
@@ -118,6 +119,10 @@ export class DashboardPage implements OnInit, OnDestroy {
   applyFilter() {
     let filtered = [...this.expenses];
 
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(e => e.title.toLowerCase().includes(query));
+    }
     if (this.selectedCategoryIds.length > 0) {
       filtered = filtered.filter(e => this.selectedCategoryIds.includes(e.categoryId));
     }
@@ -275,6 +280,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   clearFilters() {
+    this.searchQuery = '';
     this.selectedCategoryIds = [];
     this.startDateStr = '';
     this.endDateStr = '';
@@ -284,6 +290,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   getActiveFilterBadgeCount(): number {
+    const searchCount = this.searchQuery.trim() ? 1 : 0;
     const categoryCount = this.selectedCategoryIds.length;
     let dateCount = 0;
 
@@ -295,7 +302,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       dateCount = (this.startDateStr ? 1 : 0) + (this.endDateStr ? 1 : 0);
     }
 
-    return categoryCount + dateCount;
+    return searchCount + categoryCount + dateCount;
   }
 
   applyQuickDateFilter(
