@@ -18,7 +18,7 @@
   height: 36px;
   border-radius: 10px;
   border: 1px solid var(--mm-border);
-  background: #ffffff;
+  background: var(--mm-surface);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -27,7 +27,7 @@
 
   ion-icon {
     font-size: 18px;
-    color: #1e293b;
+    color: var(--mm-text);
   }
 }
 
@@ -38,19 +38,19 @@
     margin: 0;
     font-size: 20px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--mm-text);
   }
 
   p {
     margin: 4px 0 0;
-    color: #5b6b80;
+    color: var(--mm-text-muted);
     font-size: 12px;
   }
 }
 
 .wm-current {
   margin-top: 12px;
-  background: #ffffff;
+  background: var(--mm-surface);
   border: 1px solid var(--mm-border);
   border-radius: 12px;
   padding: 10px 12px;
@@ -61,7 +61,7 @@
 
 .wm-current-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--mm-text-muted);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.35px;
@@ -88,7 +88,7 @@
   box-sizing: border-box;
   cursor: pointer;
   border: 1px solid var(--mm-border);
-  background: white;
+  background: var(--mm-surface);
   border-radius: 14px;
   padding: 14px;
   text-align: left;
@@ -115,19 +115,19 @@
 .wm-title {
   font-size: 15px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--mm-text);
 }
 
 .wm-sub {
   margin-top: 2px;
   font-size: 12px;
-  color: #5b6b80;
+  color: var(--mm-text-muted);
 }
 
 .wm-card.active {
   border-color: rgba(var(--ion-color-primary-rgb), 0.4);
   box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.12);
-  background: #f8fcff;
+  background: var(--mm-surface-soft);
 }
 
 .wm-form {
@@ -137,7 +137,7 @@
     display: block;
     font-size: 12px;
     font-weight: 700;
-    color: #334155;
+    color: var(--mm-text);
     margin-bottom: 6px;
   }
 
@@ -147,7 +147,12 @@
     border-radius: 10px;
     padding: 11px 12px;
     font-size: 14px;
-    background: white;
+    background: var(--mm-surface);
+    color: var(--mm-text);
+
+    &::placeholder {
+      color: var(--mm-text-muted);
+    }
   }
 }
 

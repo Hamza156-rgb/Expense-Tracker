@@ -17,7 +17,8 @@
   </div>
 
   <div class="wm-cards">
-    <button type="button" class="wm-card" [class.active]="selectedMode === 'personal'" (click)="selectedMode = 'personal'">
+    <button type="button" class="wm-card" [class.active]="selectedMode === 'personal'"
+      (click)="selectedMode = 'personal'">
       <div class="wm-card-head">
         <ion-icon name="person-outline"></ion-icon>
         <span class="wm-check" *ngIf="selectedMode === 'personal'">
@@ -28,7 +29,8 @@
       <div class="wm-sub">Track your own daily expenses.</div>
     </button>
 
-    <button type="button" class="wm-card" [class.active]="selectedMode === 'business'" (click)="selectedMode = 'business'">
+    <button type="button" class="wm-card" [class.active]="selectedMode === 'business'"
+      (click)="selectedMode = 'business'">
       <div class="wm-card-head">
         <ion-icon name="storefront-outline"></ion-icon>
         <span class="wm-check" *ngIf="selectedMode === 'business'">
@@ -42,7 +44,7 @@
 
   <div class="wm-form" *ngIf="selectedMode === 'business'">
     <label>Shop Name</label>
-    <input type="text" [(ngModel)]="businessName" placeholder="e.g. Khan General Store" />
+    <input type="text" [(ngModel)]="businessName" placeholder="e.g. Abc Store" />
   </div>
 
   <div class="wm-actions">
