@@ -8,6 +8,7 @@ import { CategoryService } from '../../services/category.service';
 import { Category, Expense, User, WorkspaceScope } from '../../models/models';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-add-expense',
@@ -36,7 +37,8 @@ export class AddExpensePage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private settingsService: SettingsService
   ) {
     const now = new Date();
     const year = now.getFullYear();
@@ -297,4 +299,13 @@ export class AddExpensePage implements OnInit, OnDestroy {
       .replace(/^-+|-+$/g, '');
     return slug ? `shop-${slug}` : 'shop-default';
   }
+
+  get currencyCode(): string {
+    return this.settingsService.getCurrentCurrency().code;
+  }
+
+  get currencySymbol(): string {
+    return this.settingsService.getCurrentCurrency().symbol;
+  }
 }
+

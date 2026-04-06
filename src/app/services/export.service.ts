@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Expense, ExpenseFilter } from '../models/models';
+import { SettingsService } from './settings.service';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core'
@@ -12,6 +13,7 @@ interface ExportReportMeta {
 
 @Injectable({ providedIn: 'root' })
 export class ExportService {
+  constructor(private settingsService: SettingsService) {}
 
   async exportToPDF(
     expenses: Expense[],
@@ -291,7 +293,7 @@ export class ExportService {
   }
 
   private formatCurrency(amount: number): string {
-    return `PKR ${Math.round(amount).toLocaleString()}`;
+    return this.settingsService.formatCurrency(amount);
   }
 
   private getFilterSummary(filter: ExpenseFilter & { datePresetLabel?: string; categoryNames?: string[] }): string {

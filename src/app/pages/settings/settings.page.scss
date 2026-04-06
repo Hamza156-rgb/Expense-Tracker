@@ -1,0 +1,195 @@
+.settings-content {
+  --background: var(--ion-background-color);
+
+  .page-header {
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-secondary));
+    padding: 40px 24px;
+    border-radius: 0 0 32px 32px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(var(--ion-color-primary-rgb), 0.2);
+    margin-bottom: 24px;
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      margin-right: 16px;
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s;
+
+      &:active {
+        transform: scale(0.9);
+      }
+    }
+
+    .header-text {
+      flex: 1;
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      p {
+        margin: 4px 0 0;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    .header-icon {
+      font-size: 48px;
+      color: rgba(255, 255, 255, 0.15);
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  .settings-container {
+    padding: 0 20px;
+
+    .section-card {
+      background: var(--mm-surface);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--mm-shadow-sm);
+      border: 1px solid var(--mm-border);
+
+      .section-title {
+        margin: 0 0 16px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--mm-text-muted);
+      }
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+
+      &.clickable {
+        cursor: pointer;
+        &:active {
+          opacity: 0.6;
+        }
+      }
+
+      .setting-icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        margin-right: 16px;
+
+        &.theme-box { background: rgba(var(--ion-color-secondary-rgb), 0.1); color: var(--ion-color-secondary); }
+        &.currency-box { background: rgba(var(--ion-color-success-rgb), 0.1); color: var(--ion-color-success); }
+        &.security-box { background: rgba(var(--ion-color-warning-rgb), 0.1); color: var(--ion-color-warning); }
+        &.workspace-box { background: rgba(var(--ion-color-primary-rgb), 0.1); color: var(--ion-color-primary); }
+      }
+
+      .setting-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .setting-label {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--ion-text-color);
+        }
+
+        .setting-value {
+          font-size: 13px;
+          color: var(--ion-color-medium);
+          margin-top: 2px;
+        }
+      }
+
+      .row-arrow {
+        font-size: 20px;
+        color: var(--ion-color-medium);
+      }
+    }
+
+    .setting-divider {
+      height: 1px;
+      background: rgba(var(--ion-text-color-rgb), 0.08);
+      margin: 8px 0;
+      margin-left: 60px;
+    }
+
+    .currency-select-container {
+      margin-top: 12px;
+      background: var(--mm-surface-soft);
+      border-radius: 12px;
+      padding: 4px 12px;
+
+      .custom-select {
+        width: 100%;
+        --padding-start: 0;
+        font-weight: 500;
+        color: var(--ion-text-color);
+      }
+    }
+
+    .logout-section {
+      margin-top: 12px;
+      margin-bottom: 24px;
+
+      .logout-btn {
+        width: 100%;
+        background: rgba(var(--ion-color-danger-rgb), 0.08);
+        border: 1px solid rgba(var(--ion-color-danger-rgb), 0.1);
+        border-radius: 16px;
+        padding: 16px;
+        color: var(--ion-color-danger);
+        font-weight: 600;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.2s;
+
+        ion-icon {
+          font-size: 20px;
+        }
+
+        &:active {
+          background: rgba(var(--ion-color-danger-rgb), 0.15);
+          transform: scale(0.98);
+        }
+      }
+    }
+
+    .app-version {
+      text-align: center;
+      p {
+        font-size: 12px;
+        color: var(--mm-text-muted);
+        opacity: 0.7;
+      }
+    }
+  }
+}
+

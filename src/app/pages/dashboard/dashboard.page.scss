@@ -603,7 +603,7 @@ ion-content {
 }
 
 .fp-dash {
-  color: #b9c6d6;
+  color: var(--mm-text-muted);
   font-size: 16px;
   margin-top: 14px;
 }
@@ -614,7 +614,7 @@ ion-content {
   label {
     display: block;
     font-size: 11px;
-    color: #6d7d92;
+    color: var(--mm-text-muted);
     font-weight: 700;
     margin-bottom: 4px;
   }
@@ -625,8 +625,8 @@ ion-content {
     border-radius: 10px;
     padding: 8px 10px;
     font-size: 12px;
-    color: #253447;
-    background: #f8fbff;
+    color: var(--mm-text);
+    background: var(--mm-surface-soft);
     outline: none;
 
     &:focus {
@@ -797,7 +797,7 @@ ion-content {
   padding: 0 4px;
   font-size: 12.5px;
   font-weight: 800;
-  color: #334155;
+  color: var(--mm-text);
   text-transform: capitalize;
   
   ion-icon {
@@ -881,7 +881,7 @@ ion-content {
 
 .enote {
   font-size: 12px;
-  color: #5f7086;
+  color: var(--mm-text-muted);
   margin-top: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -899,7 +899,7 @@ ion-content {
 .eamt {
   font-size: 14px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--mm-text);
 }
 
 .ebtns {

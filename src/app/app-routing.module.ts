@@ -37,6 +37,11 @@ const routes: Routes = [
   },
 
   {
+    path: 'tabs/settings',
+    loadChildren: () => import('./pages/settings/settings.module').then(m => m.SettingsPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: ''
   }

@@ -4,6 +4,7 @@ import { AlertController, ModalController, ToastController } from '@ionic/angula
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
+import { SettingsService } from '../../services/settings.service';
 import { User, Expense, WorkspaceScope } from '../../models/models';
 import { ChangePasswordModalComponent } from './change-password-modal/change-password-modal.component';
 
@@ -26,7 +27,8 @@ export class ProfilePage implements OnInit, OnDestroy {
     private alertCtrl: AlertController,
     private modalCtrl: ModalController,
     private toastCtrl: ToastController,
-    private router: Router
+    private router: Router,
+    private settingsService: SettingsService
   ) { }
 
   ngOnInit() {
@@ -81,17 +83,11 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   async changePassword() {
-    const modal = await this.modalCtrl.create({
-      component: ChangePasswordModalComponent,
-      cssClass: 'change-password-modal',
-      breakpoints: [0, 0.45],
-      initialBreakpoint: 0.45
-    });
-    await modal.present();
+    // Moved to SettingsPage
   }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(amount);
+    return this.settingsService.formatCurrency(amount);
   }
 
   get memberSince(): string {
@@ -121,10 +117,6 @@ export class ProfilePage implements OnInit, OnDestroy {
       return this.user?.businessName?.trim() || 'Shop Mode';
     }
     return 'Private Expense Tracking';
-  }
-
-  openWorkspaceMode() {
-    this.router.navigate(['/workspace-mode']);
   }
 
   private getWorkspaceScope(user: User): WorkspaceScope {

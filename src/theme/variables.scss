@@ -76,7 +76,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  body:not(.light) {
     --ion-color-primary: #0FA3B1; /* Use accent as primary in dark mode for pop */
     --ion-color-primary-rgb: 15, 163, 177;
     
@@ -95,4 +95,23 @@
     --ion-background-color: var(--mm-bg);
     --ion-text-color: var(--mm-text);
   }
+}
+
+body.dark {
+  --ion-color-primary: #0FA3B1; /* Use accent as primary in dark mode for pop */
+  --ion-color-primary-rgb: 15, 163, 177;
+  
+  --mm-bg: #0f172a;
+  --mm-surface: #1e293b;
+  --mm-surface-rgb: 30, 41, 59;
+  --mm-surface-soft: #334155;
+  --mm-border: #334155;
+  --mm-text: #f8fafc;
+  --mm-text-muted: #94a3b8;
+  
+  --mm-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --mm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  
+  --ion-background-color: var(--mm-bg);
+  --ion-text-color: var(--mm-text);
 }

@@ -1,0 +1,102 @@
+<ion-content class="settings-content">
+  <!-- Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <div class="header-text">
+      <h1>Settings</h1>
+      <p>Customize your experience</p>
+    </div>
+    <div class="header-icon">
+      <ion-icon name="settings-outline"></ion-icon>
+    </div>
+  </div>
+
+  <div class="settings-container">
+    <!-- Appearance Section -->
+    <div class="section-card">
+      <h3 class="section-title">Appearance</h3>
+      
+      <div class="setting-row">
+        <div class="setting-icon-box theme-box">
+          <ion-icon name="moon-outline"></ion-icon>
+        </div>
+        <div class="setting-info">
+          <span class="setting-label">Dark Theme</span>
+          <span class="setting-value">Reduce eye strain</span>
+        </div>
+        <ion-toggle [checked]="isDarkMode" (ionChange)="toggleDarkMode($event)"></ion-toggle>
+      </div>
+    </div>
+
+    <!-- Preferences Section -->
+    <div class="section-card">
+      <h3 class="section-title">Preferences</h3>
+
+      <div class="setting-row">
+        <div class="setting-icon-box currency-box">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+        <div class="setting-info">
+          <span class="setting-label">Local Currency</span>
+          <span class="setting-value">Display amounts worldwide</span>
+        </div>
+      </div>
+      <div class="currency-select-container">
+        <ion-select 
+          interface="popover" 
+          [value]="selectedCurrencyCode" 
+          (ionChange)="onCurrencyChange($event)"
+          class="custom-select">
+          <ion-select-option *ngFor="let c of currencies" [value]="c.code">
+            {{ c.code }} - {{ c.name }} ({{ c.symbol }})
+          </ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    <!-- Security & Account -->
+    <div class="section-card">
+      <h3 class="section-title">Security & Account</h3>
+
+      <div class="setting-row clickable" (click)="changePassword()">
+        <div class="setting-icon-box security-box">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </div>
+        <div class="setting-info">
+          <span class="setting-label">Change Password</span>
+          <span class="setting-value">Update your security</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="row-arrow"></ion-icon>
+      </div>
+
+      <div class="setting-divider"></div>
+
+      <div class="setting-row clickable" (click)="goToWorkspaceMode()">
+        <div class="setting-icon-box workspace-box">
+          <ion-icon name="briefcase-outline"></ion-icon>
+        </div>
+        <div class="setting-info">
+          <span class="setting-label">Workspace Mode</span>
+          <span class="setting-value">Personal / Business Mode</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="row-arrow"></ion-icon>
+      </div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="logout-section">
+      <button class="logout-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        Sign Out
+      </button>
+    </div>
+
+    <div class="app-version">
+      <p>Money Map v1.0.1 • Support worldwide</p>
+    </div>
+  </div>
+  
+  <div style="height: 30px;"></div>
+</ion-content>

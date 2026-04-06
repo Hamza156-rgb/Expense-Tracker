@@ -7,6 +7,7 @@ import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
 import { ExportService } from '../../services/export.service';
 import { Expense, Category, ExpenseFilter, User, WorkspaceScope } from '../../models/models';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -55,7 +56,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
-    private router: Router
+    private router: Router,
+    private settingsService: SettingsService
   ) { }
 
   ngOnInit() {
@@ -533,11 +535,13 @@ export class DashboardPage implements OnInit, OnDestroy {
   goToAssistant() {
     this.router.navigate(['/tabs/assistant']);
   }
+  
+  goToSettings() {
+    this.router.navigate(['/tabs/settings']);
+  }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency', currency: 'PKR', minimumFractionDigits: 0
-    }).format(amount || 0);
+    return this.settingsService.formatCurrency(amount);
   }
 
   formatDate(date: any): string {

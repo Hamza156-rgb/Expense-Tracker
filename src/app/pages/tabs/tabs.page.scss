@@ -1,14 +1,14 @@
 ion-tab-bar {
-  --background: white;
-  border-top: 1px solid #f1f5f9;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  --background: var(--mm-surface);
+  border-top: 1px solid var(--mm-border);
+  box-shadow: var(--mm-shadow-sm);
   // height: 60px;
   
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 ion-tab-button {
-  --color: #94a3b8;
+  --color: var(--mm-text-muted);
   --color-selected: var(--ion-color-primary);
 
   ion-label {
