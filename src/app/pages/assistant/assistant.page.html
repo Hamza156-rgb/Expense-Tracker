@@ -23,6 +23,9 @@
     <div class="msg msg-ai" *ngIf="isSending">Thinking...</div>
   </div>
 
+</ion-content>
+
+<ion-footer [translucent]="true" class="ion-no-border">
   <div class="input-wrap">
     <textarea
       [(ngModel)]="prompt"
@@ -33,4 +36,4 @@
       Send
     </button>
   </div>
-</ion-content>
+</ion-footer>

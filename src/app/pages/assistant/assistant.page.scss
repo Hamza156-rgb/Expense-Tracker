@@ -64,7 +64,7 @@
 }
 
 .chat-list {
-  padding: 10px 12px 96px;
+  padding: 10px 12px 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -92,17 +92,11 @@
 }
 
 .input-wrap {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 50px; /* Adjusted to sit correctly above the tab bar */
-  padding: 12px 14px calc(env(safe-area-inset-bottom) + 12px);
+  padding: 12px 14px;
   background: var(--mm-surface);
   border-top: 1px solid var(--mm-border);
-  backdrop-filter: blur(12px);
   display: flex;
   gap: 10px;
-  z-index: 100;
 }
 
 .chat-input {
