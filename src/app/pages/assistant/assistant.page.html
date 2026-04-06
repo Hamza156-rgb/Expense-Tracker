@@ -1,7 +1,12 @@
 <ion-content class="assistant-content">
   <div class="assistant-header">
-    <h1>AI Assistant</h1>
-    <p>Ask questions about your spending and budget planning.</p>
+    <button type="button" class="back-btn" (click)="goBack()" aria-label="Go back">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <div class="header-text">
+      <h1>AI Assistant</h1>
+      <p>Ask questions about your spending and budget planning.</p>
+    </div>
   </div>
 
   <div class="quick-prompts" *ngIf="messages.length <= 1">

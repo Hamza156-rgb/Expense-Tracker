@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription, combineLatest } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
 import { AIAssistantService, AssistantContextPayload } from '../../services/ai-assistant.service';
@@ -46,7 +47,8 @@ export class AssistantPage implements OnInit, OnDestroy {
     private authService: AuthService,
     private expenseService: ExpenseService,
     private categoryService: CategoryService,
-    private aiAssistantService: AIAssistantService
+    private aiAssistantService: AIAssistantService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -155,4 +157,7 @@ export class AssistantPage implements OnInit, OnDestroy {
     return slug ? `shop-${slug}` : 'shop-default';
   }
 
+  goBack() {
+    this.router.navigate(['/tabs/profile']);
+  }
 }
