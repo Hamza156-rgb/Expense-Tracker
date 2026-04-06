@@ -59,6 +59,20 @@
 
 
 <ion-content fullscreen="true" class="dashboard-content">
+  <!-- AI INSIGHTS (Pinned to Top) -->
+  <div class="ai-card" *ngIf="!isLoading && aiInsights.length > 0">
+    <div class="ai-head">
+      <div class="head-left">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <span>AI Insights</span>
+      </div>
+      <div class="swipe-hint" *ngIf="aiInsights.length > 1">Swipe for more →</div>
+    </div>
+    <div class="ai-list">
+      <div class="ai-item" *ngFor="let insight of aiInsights">{{ insight }}</div>
+    </div>
+  </div>
+
   <!-- SEARCH & FILTER TOOLBAR -->
   <div class="tbar">
     <div class="search-wrap">
@@ -82,9 +96,14 @@
 
   <!-- ACTIVE FILTERS SUMMARY -->
   <div class="active-filters-row" *ngIf="filterActive">
+    <div class="active-chips">
+      <div class="a-chip" *ngFor="let f of getActiveFilterLabels()" (click)="removeFilter(f)">
+        <span class="a-label">{{ f.label }}</span>
+        <ion-icon name="close-circle"></ion-icon>
+      </div>
+    </div>
     <button type="button" class="tbtn-clear" (click)="clearFilters()">
-      <ion-icon name="close-outline"></ion-icon>
-      Clear All Filters
+      Clear All
     </button>
   </div>
 
@@ -130,20 +149,6 @@
           <input type="date" [(ngModel)]="endDateStr" (ngModelChange)="onDateRangeInputChange()" />
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- AI INSIGHTS -->
-  <div class="ai-card" *ngIf="!isLoading && aiInsights.length > 0">
-    <div class="ai-head">
-      <div class="head-left">
-        <ion-icon name="sparkles-outline"></ion-icon>
-        <span>AI Insights</span>
-      </div>
-      <div class="swipe-hint" *ngIf="aiInsights.length > 1">Swipe for more →</div>
-    </div>
-    <div class="ai-list">
-      <div class="ai-item" *ngFor="let insight of aiInsights">{{ insight }}</div>
     </div>
   </div>
 

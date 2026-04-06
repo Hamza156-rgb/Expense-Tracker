@@ -305,6 +305,46 @@ export class DashboardPage implements OnInit, OnDestroy {
     return searchCount + categoryCount + dateCount;
   }
 
+  getActiveFilterLabels(): Array<{ type: 'search' | 'category' | 'date'; label: string; value?: string }> {
+    const labels: Array<{ type: 'search' | 'category' | 'date'; label: string; value?: string }> = [];
+
+    if (this.searchQuery.trim()) {
+      labels.push({ type: 'search', label: `"${this.searchQuery}"` });
+    }
+
+    this.selectedCategoryIds.forEach(id => {
+      const cat = this.categories.find(c => c.id === id);
+      if (cat) labels.push({ type: 'category', label: cat.name, value: id });
+    });
+
+    if (this.activeQuickDateFilter !== 'allTime') {
+      labels.push({ type: 'date', label: this.getActiveDateFilterLabel() });
+    } else if (this.startDateStr || this.endDateStr) {
+      if (this.startDateStr && this.endDateStr) {
+        labels.push({ type: 'date', label: `${this.formatDate(this.startDateStr)} - ${this.formatDate(this.endDateStr)}` });
+      } else if (this.startDateStr) {
+        labels.push({ type: 'date', label: `From ${this.formatDate(this.startDateStr)}` });
+      } else {
+        labels.push({ type: 'date', label: `To ${this.formatDate(this.endDateStr)}` });
+      }
+    }
+
+    return labels;
+  }
+
+  removeFilter(filter: { type: 'search' | 'category' | 'date'; value?: string }) {
+    if (filter.type === 'search') {
+      this.searchQuery = '';
+    } else if (filter.type === 'category' && filter.value) {
+      this.selectedCategoryIds = this.selectedCategoryIds.filter(id => id !== filter.value);
+    } else if (filter.type === 'date') {
+      this.startDateStr = '';
+      this.endDateStr = '';
+      this.activeQuickDateFilter = 'allTime';
+    }
+    this.applyFilter();
+  }
+
   applyQuickDateFilter(
     filterKey: 'today' | 'last7' | 'thisMonth' | 'lastMonth' | 'allTime'
   ) {
