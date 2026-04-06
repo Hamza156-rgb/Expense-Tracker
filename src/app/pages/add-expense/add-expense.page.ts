@@ -121,6 +121,11 @@ export class AddExpensePage implements OnInit, OnDestroy {
     }
   }
 
+  setAmount(amount: number) {
+    this.expenseForm.patchValue({ amount });
+    this.expenseForm.get('amount')?.markAsTouched();
+  }
+
   applySuggestedCategory() {
     if (!this.suggestedCategory?.id) return;
     this.selectCategory(this.suggestedCategory.id);

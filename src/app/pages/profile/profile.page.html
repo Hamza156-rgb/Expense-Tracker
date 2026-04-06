@@ -8,24 +8,26 @@
   </div>
 
   <!-- Stats -->
-  <div class="stats-container">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <ion-icon name="receipt-outline"></ion-icon>
-        <span class="stat-num">{{ totalExpenses }}</span>
+  <div class="stats-container stack">
+    <div class="stat-card">
+      <div class="stat-icon-wrap"><ion-icon name="receipt-outline"></ion-icon></div>
+      <div class="stat-info">
         <span class="stat-lbl">Total Expenses</span>
+        <span class="stat-num">{{ totalExpenses }}</span>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <ion-icon name="wallet-outline"></ion-icon>
-        <span class="stat-num">{{ formatCurrency(totalAmount) }}</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-wrap"><ion-icon name="wallet-outline"></ion-icon></div>
+      <div class="stat-info">
         <span class="stat-lbl">Total Spent</span>
+        <span class="stat-num">{{ formatCurrency(totalAmount) }}</span>
       </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <ion-icon name="calendar-outline"></ion-icon>
-        <span class="stat-num">{{ formatCurrency(thisMonthAmount) }}</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-wrap"><ion-icon name="calendar-outline"></ion-icon></div>
+      <div class="stat-info">
         <span class="stat-lbl">This Month</span>
+        <span class="stat-num">{{ formatCurrency(thisMonthAmount) }}</span>
       </div>
     </div>
   </div>
@@ -38,6 +40,9 @@
     <div class="avg-info">
       <p class="avg-label">Average Daily Spend</p>
       <h3 class="avg-value">{{ formatCurrency(avgPerDay) }}</h3>
+    </div>
+    <div class="avg-decor">
+      <ion-icon name="analytics-outline"></ion-icon>
     </div>
   </div>
 

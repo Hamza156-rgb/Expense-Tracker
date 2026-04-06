@@ -30,12 +30,12 @@ ion-tab-button {
   .fab-center {
     width: 52px;
     height: 52px;
-    background: linear-gradient(135deg, #0f6cbd 0%, #0f766e 100%);
+    background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 18px rgba(15,108,189,0.5);
+    box-shadow: 0 4px 18px rgba(var(--ion-color-primary-rgb),0.5);
 
     ion-icon {
       font-size: 26px;

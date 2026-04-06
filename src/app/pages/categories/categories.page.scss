@@ -5,7 +5,7 @@
 .page-header {
   background:
     radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.2) 0, transparent 36%),
-    linear-gradient(140deg, #0f6cbd 0%, #0369a1 55%, #0f766e 100%);
+    linear-gradient(140deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 55%, var(--ion-color-secondary) 100%);
   padding: calc(env(safe-area-inset-top) + 12px) 14px 14px;
   display: flex;
   align-items: center;
@@ -117,9 +117,9 @@
   ion-icon { font-size: 15px; }
 
   &.edit {
-    background: rgba(15,108,189,0.1);
+    background: rgba(var(--ion-color-primary-rgb),0.1);
     color: var(--ion-color-primary);
-    &:hover { background: rgba(15,108,189,0.2); }
+    &:hover { background: rgba(var(--ion-color-primary-rgb),0.2); }
   }
 
   &.delete {
@@ -145,7 +145,7 @@
   p { font-size: 14px; color: #94a3b8; margin: 0 0 24px; }
 
   .btn-create {
-    background: linear-gradient(135deg, #0f6cbd, #0f766e);
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-secondary));
     color: white;
     border: none;
     border-radius: 12px;
@@ -161,7 +161,7 @@
   align-items: flex-start;
   gap: 8px;
   padding: 12px 14px;
-  background: rgba(15,108,189,0.07);
+  background: rgba(var(--ion-color-primary-rgb),0.07);
   border-radius: 12px;
   margin-top: 16px;
 

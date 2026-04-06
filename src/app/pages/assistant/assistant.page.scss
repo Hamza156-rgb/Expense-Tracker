@@ -4,7 +4,7 @@
 
 .assistant-header {
   padding: calc(env(safe-area-inset-top) + 14px) 14px 12px;
-  background: linear-gradient(140deg, #0f6cbd 0%, #0369a1 55%, #0f766e 100%);
+  background: linear-gradient(140deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 55%, var(--ion-color-secondary) 100%);
   color: #fff;
 
   h1 {
@@ -28,7 +28,7 @@
 }
 
 .quick-btn {
-  border: 1px solid rgba(15, 108, 189, 0.25);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.25);
   background: #eef6ff;
   color: #1e3a56;
   border-radius: 999px;
@@ -91,7 +91,7 @@
 .send-btn {
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #0f6cbd, #0f766e);
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-secondary));
   color: white;
   font-weight: 700;
   padding: 0 12px;

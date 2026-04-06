@@ -1,5 +1,5 @@
 .signup-content {
-  --background: linear-gradient(160deg, #0f6cbd 0%, #0369a1 52%, #f4f7fb 52%);
+  --background: linear-gradient(160deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 52%, #f4f7fb 52%);
 }
 
 .auth-container {
@@ -86,7 +86,7 @@
 
   &:focus-within {
     border-color: var(--ion-color-primary);
-    box-shadow: 0 0 0 3px rgba(15,108,189,0.15);
+    box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb),0.15);
     background: white;
   }
 
@@ -133,7 +133,7 @@
 .btn-primary {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #0f6cbd 0%, #0f766e 100%);
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
   color: white;
   border: none;
   border-radius: 14px;
@@ -145,12 +145,12 @@
   justify-content: center;
   gap: 8px;
   margin-top: 8px;
-  box-shadow: 0 4px 15px rgba(15,108,189,0.36);
+  box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb),0.36);
   transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(15,108,189,0.44);
+    box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb),0.44);
   }
 
   &:disabled {

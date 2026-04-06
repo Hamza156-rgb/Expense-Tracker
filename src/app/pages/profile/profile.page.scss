@@ -4,10 +4,12 @@
 
 .profile-header {
   background:
-    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.2) 0, transparent 36%),
-    linear-gradient(140deg, #0f6cbd 0%, #0369a1 55%, #0f766e 100%);
-  padding: calc(env(safe-area-inset-top) + 14px) 18px 24px;
+    radial-gradient(circle at top right, rgba(15, 163, 177, 0.15), transparent 60%),
+    linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
+  padding: calc(env(safe-area-inset-top) + 20px) 18px 24px;
   text-align: center;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
 
   .avatar-large {
     width: 80px;
@@ -48,83 +50,111 @@
 }
 
 .stats-container {
-  margin: 12px 12px 0;
-}
-
-.stats-grid {
-  background: white;
-  border-radius: 16px;
-  padding: 14px;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-}
-
-.stat-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-
-  ion-icon { font-size: 18px; color: var(--ion-color-primary); }
-
-  .stat-num {
-    font-size: 14px;
-    font-weight: 700;
-    color: #1e293b;
-    text-align: center;
-    line-height: 1.2;
-  }
-
-  .stat-lbl {
-    font-size: 9px;
-    color: #94a3b8;
-    text-align: center;
-    font-weight: 500;
+  margin: 16px 12px 0;
+  &.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
-.stat-divider {
-  width: 1px;
-  height: 34px;
-  background: #f1f5f9;
-}
-
-.avg-card {
-  margin: 10px 12px;
-  background: white;
-  border-radius: 16px;
-  padding: 14px;
+.stat-card {
+  background: var(--mm-surface);
+  border-radius: var(--mm-radius-md);
+  padding: 14px 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+  gap: 14px;
+  box-shadow: var(--mm-shadow-sm);
+  border: 1px solid var(--mm-border);
 
-  .avg-icon {
-    width: 42px;
-    height: 42px;
-    background: rgba(15,108,189,0.12);
-    border-radius: 11px;
+  .stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    background: rgba(15, 163, 177, 0.1);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    ion-icon { font-size: 20px; color: var(--ion-color-primary); }
+
+    ion-icon {
+      font-size: 20px;
+      color: var(--ion-color-secondary);
+    }
+  }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .stat-lbl {
+      font-size: 11px;
+      color: var(--mm-text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-num {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--mm-text);
+    }
+  }
+}
+
+.avg-card {
+  margin: 10px 12px;
+  background: linear-gradient(135deg, var(--ion-color-secondary) 0%, #0c828d 100%);
+  border-radius: var(--mm-radius-lg);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 18px rgba(15, 163, 177, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  .avg-icon {
+    width: 42px;
+    height: 42px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    ion-icon { font-size: 20px; color: #ffffff; }
+  }
+
+  .avg-info {
+    z-index: 1;
   }
 
   .avg-label {
     font-size: 11px;
-    color: #94a3b8;
+    color: rgba(255, 255, 255, 0.85);
     margin: 0 0 4px;
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .avg-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
     margin: 0;
+  }
+
+  .avg-decor {
+    position: absolute;
+    right: -10px;
+    bottom: -20px;
+    ion-icon {
+      font-size: 80px;
+      color: rgba(255, 255, 255, 0.08);
+    }
   }
 }
 
@@ -174,9 +204,9 @@
 }
 
 .mode-btn {
-  border: 1px solid rgba(15, 108, 189, 0.25);
-  background: rgba(15, 108, 189, 0.08);
-  color: #0f6cbd;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.25);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  color: var(--ion-color-primary);
   border-radius: 10px;
   padding: 7px 10px;
   font-size: 12px;
@@ -188,7 +218,7 @@
   transition: background 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    background: rgba(15, 108, 189, 0.16);
+    background: rgba(var(--ion-color-primary-rgb), 0.16);
   }
 
   &:active {

@@ -7,49 +7,69 @@
       <div class="user-row">
         <div class="avatar">{{ initials }}</div>
         <div class="user-text">
-          <div class="greet">Hello,</div>
-          <div class="uname">{{ (user?.firstName || '') + ' ' + (user?.lastName || '') }}</div>
+          <div class="greet">{{ greeting }},</div>
+          <div class="uname">{{ (user?.firstName || '') }} 👋</div>
           <div class="mode-pill">
             {{ activeWorkspaceLabel }}
           </div>
         </div>
       </div>
       <div class="hdr-actions">
-        <div class="hbtn-wrap">
-          <button type="button" class="hbtn" (click)="goToAssistant()" aria-label="Open AI Assistant" title="Open AI Assistant">
-            <ion-icon name="sparkles-outline"></ion-icon>
-          </button>
-          <span class="hbtn-tag">AI</span>
-        </div>
-        <div class="hbtn-wrap">
-          <button type="button" class="hbtn" (click)="goToCategories()" aria-label="Open Categories" title="Open Categories">
-            <ion-icon name="grid-outline"></ion-icon>
-          </button>
-          <span class="hbtn-tag">CAT</span>
-        </div>
-        <div class="hbtn-wrap">
-          <button type="button" class="hbtn hbtn-red" (click)="logout()" aria-label="Logout" title="Logout">
-            <ion-icon name="log-out-outline"></ion-icon>
-          </button>
-          <span class="hbtn-tag hbtn-tag-red">OUT</span>
-        </div>
+        <button type="button" class="hbtn ai-btn" (click)="goToAssistant()" aria-label="Open AI Assistant">
+          <ion-icon name="sparkles-outline"></ion-icon>
+        </button>
+        <button type="button" class="hbtn" (click)="goToCategories()" aria-label="Open Categories">
+          <ion-icon name="grid-outline"></ion-icon>
+        </button>
+        <button type="button" class="hbtn hbtn-red" (click)="logout()" aria-label="Logout">
+          <ion-icon name="log-out-outline"></ion-icon>
+        </button>
       </div>
     </div>
 
-    <div class="stats">
-      <div class="stat-main">
-        <div class="s-label">{{ filterActive ? 'Filtered' : 'All Time' }}</div>
-        <div class="s-big">{{ formatCurrency(totalAmount) }}</div>
-        <div class="s-sub">{{ filteredExpenses.length }} expense(s)</div>
-      </div>
-      <div class="stat-side">
-        <div class="stat-sm">
-          <div class="s-label">Today</div>
-          <div class="s-med">{{ formatCurrency(todayAmount) }}</div>
+    <div class="stats-grid">
+      <!-- Card 1: All Time -->
+      <div class="stat-card">
+        <div class="sc-top">
+          <div class="sc-icon"><ion-icon name="wallet-outline"></ion-icon></div>
+          <div class="sc-trend"><ion-icon name="trending-up-outline"></ion-icon></div>
         </div>
-        <div class="stat-sm">
-          <div class="s-label">This Month</div>
-          <div class="s-med">{{ formatCurrency(monthAmount) }}</div>
+        <div class="sc-amount">{{ formatCurrency(totalAmount) }}</div>
+        <div class="sc-label">All Time</div>
+        <div class="sc-sparkline">
+          <div class="sp-bar" style="height: 40%"></div>
+          <div class="sp-bar" style="height: 60%"></div>
+          <div class="sp-bar" style="height: 70%"></div>
+          <div class="sp-bar active" style="height: 100%"></div>
+        </div>
+      </div>
+
+      <!-- Card 2: Today (Highlighted) -->
+      <div class="stat-card highlighted">
+        <div class="sc-top">
+          <div class="sc-icon"><ion-icon name="today-outline"></ion-icon></div>
+          <div class="sc-trend down"><ion-icon name="trending-down-outline"></ion-icon></div>
+        </div>
+        <div class="sc-amount">{{ formatCurrency(todayAmount) }}</div>
+        <div class="sc-label">Today</div>
+        <div class="sc-sparkline">
+          <div class="sp-bar" style="height: 100%"></div>
+          <div class="sp-bar" style="height: 50%"></div>
+          <div class="sp-bar" style="height: 30%"></div>
+          <div class="sp-bar active" style="height: 80%"></div>
+        </div>
+      </div>
+
+      <!-- Card 3: This Month -->
+      <div class="stat-card">
+        <div class="sc-top">
+          <div class="sc-icon"><ion-icon name="calendar-outline"></ion-icon></div>
+          <div class="sc-trend"><ion-icon name="trending-up-outline"></ion-icon></div>
+        </div>
+        <div class="sc-amount">{{ formatCurrency(monthAmount) }}</div>
+        <div class="sc-label">This Month</div>
+        <div class="sc-progress-bar">
+          <div class="sc-fill" [style.width.%]="monthProgress"></div>
         </div>
       </div>
     </div>
@@ -154,8 +174,15 @@
 
   <!-- LIST HEADER -->
   <div class="lhdr">
-    <span class="lhdr-title">{{ filterActive ? 'Filtered Expenses' : 'Recent Expenses' }}</span>
-    <span class="lhdr-count">{{ filteredExpenses.length }}</span>
+    <div class="lhdr-text">
+      <span class="lhdr-title">{{ filterActive ? 'Filtered Expenses' : 'Recent Expenses' }}</span>
+      <span class="lhdr-count">{{ filteredExpenses.length }}</span>
+    </div>
+    <div class="lhdr-chart" *ngIf="!isLoading && groupedExpenses.length > 0">
+      <!-- Mini Category Breakdown Placeholder -->
+      <div class="mini-pie-chart"></div>
+      <span class="chart-lbl">Categories</span>
+    </div>
   </div>
 
   <!-- SKELETON LOADING -->
@@ -226,7 +253,7 @@
 
 <!-- <ion-fab vertical="bottom" horizontal="end" slot="fixed">
   <ion-fab-button (click)="addExpense()"
-    style="--background: linear-gradient(135deg,#0f6cbd,#0f766e); --box-shadow: 0 6px 20px rgba(15,108,189,.5);">
+    style="--background: linear-gradient(135deg,var(--ion-color-primary),var(--ion-color-secondary)); --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb),.5);">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab> -->

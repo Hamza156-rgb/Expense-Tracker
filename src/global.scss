@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @import "~@ionic/angular/css/core.css";
 @import "~@ionic/angular/css/normalize.css";
@@ -18,24 +18,25 @@
 body {
   background: var(--mm-bg);
   color: var(--mm-text);
+  font-family: 'Inter', sans-serif;
 }
 
 ion-tab-bar {
-  --background: #ffffff;
+  --background: var(--mm-surface);
   border-top: 1px solid var(--mm-border);
-  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
   padding-bottom: env(safe-area-inset-bottom);
   height: 60px;
 }
 
 ion-tab-button {
-  --color: #7d8da4;
+  --color: var(--mm-text-muted);
   --color-selected: var(--ion-color-primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 ion-loading {
-  --background: rgba(255, 255, 255, 0.95);
+  --background: rgba(var(--mm-surface-rgb), 0.95);
   --spinner-color: var(--ion-color-primary);
   --backdrop-opacity: 0.4;
 }

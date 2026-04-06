@@ -79,6 +79,19 @@ export class DashboardPage implements OnInit, OnDestroy {
     return ((f[0] || '') + (l[0] || '')).toUpperCase() || '?';
   }
 
+  get greeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  get monthProgress(): number {
+    const budget = 50000; // Arbitrary placeholder budget
+    const pct = (this.monthAmount / budget) * 100;
+    return pct > 100 ? 100 : Math.round(pct);
+  }
+
   get activeWorkspaceLabel(): string {
     if (this.user?.accountMode === 'business') {
       return `Business • ${this.user.businessName || 'Shop'}`;

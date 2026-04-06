@@ -1,24 +1,25 @@
 :root {
-  --ion-color-primary: #0f6cbd;
-  --ion-color-primary-rgb: 15, 108, 189;
+  /* New Fintech Colors */
+  --ion-color-primary: #0B3A53;
+  --ion-color-primary-rgb: 11, 58, 83;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #0d5fa6;
-  --ion-color-primary-tint: #277bc6;
+  --ion-color-primary-shade: #093349;
+  --ion-color-primary-tint: #234e64;
 
-  --ion-color-secondary: #0f766e;
-  --ion-color-secondary-rgb: 15, 118, 110;
+  --ion-color-secondary: #0FA3B1;
+  --ion-color-secondary-rgb: 15, 163, 177;
   --ion-color-secondary-contrast: #ffffff;
   --ion-color-secondary-contrast-rgb: 255, 255, 255;
-  --ion-color-secondary-shade: #0d675f;
-  --ion-color-secondary-tint: #27847d;
+  --ion-color-secondary-shade: #0d8f9c;
+  --ion-color-secondary-tint: #27acb9;
 
-  --ion-color-tertiary: #0369a1;
-  --ion-color-tertiary-rgb: 3, 105, 161;
+  --ion-color-tertiary: #1e293b;
+  --ion-color-tertiary-rgb: 30, 41, 59;
   --ion-color-tertiary-contrast: #ffffff;
   --ion-color-tertiary-contrast-rgb: 255, 255, 255;
-  --ion-color-tertiary-shade: #035d8e;
-  --ion-color-tertiary-tint: #1b78aa;
+  --ion-color-tertiary-shade: #1a2434;
+  --ion-color-tertiary-tint: #353f4f;
 
   --ion-color-success: #10b981;
   --ion-color-success-rgb: 16, 185, 129;
@@ -31,49 +32,67 @@
   --ion-color-warning-rgb: 245, 158, 11;
   --ion-color-warning-contrast: #000000;
   --ion-color-warning-contrast-rgb: 0, 0, 0;
-  --ion-color-warning-shade: #d88b0a;
-  --ion-color-warning-tint: #f6a823;
 
   --ion-color-danger: #ef4444;
   --ion-color-danger-rgb: 239, 68, 68;
   --ion-color-danger-contrast: #ffffff;
   --ion-color-danger-contrast-rgb: 255, 255, 255;
-  --ion-color-danger-shade: #d23c3c;
-  --ion-color-danger-tint: #f15757;
 
   --ion-color-dark: #0f172a;
   --ion-color-dark-rgb: 15, 23, 42;
   --ion-color-dark-contrast: #ffffff;
   --ion-color-dark-contrast-rgb: 255, 255, 255;
-  --ion-color-dark-shade: #0d1424;
-  --ion-color-dark-tint: #273043;
 
-  --ion-color-medium: #475569;
-  --ion-color-medium-rgb: 71, 85, 105;
+  --ion-color-medium: #6b7280;
+  --ion-color-medium-rgb: 107, 114, 128;
   --ion-color-medium-contrast: #ffffff;
   --ion-color-medium-contrast-rgb: 255, 255, 255;
-  --ion-color-medium-shade: #3f4b5d;
-  --ion-color-medium-tint: #5b6878;
 
   --ion-color-light: #f8fafc;
   --ion-color-light-rgb: 248, 250, 252;
   --ion-color-light-contrast: #0f172a;
   --ion-color-light-contrast-rgb: 15, 23, 42;
-  --ion-color-light-shade: #dadcde;
-  --ion-color-light-tint: #f9fbfc;
 
-  --ion-font-family: 'Manrope', 'Segoe UI', sans-serif;
-  --ion-background-color: #f4f7fb;
-  --ion-text-color: #0f172a;
+  --ion-font-family: 'Inter', 'Segoe UI', sans-serif;
+  --ion-background-color: var(--mm-bg);
+  --ion-text-color: var(--mm-text);
 
-  --mm-bg: #f4f7fb;
+  /* Shared App Theme Variables */
+  --mm-bg: #f8fafc; /* light modern background */
   --mm-surface: #ffffff;
-  --mm-surface-soft: #eef3f9;
-  --mm-border: #dbe4ef;
-  --mm-text: #0f172a;
-  --mm-text-muted: #5b6b80;
-  --mm-radius-lg: 18px;
-  --mm-radius-md: 12px;
-  --mm-shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.06);
-  --mm-shadow-md: 0 14px 34px rgba(15, 23, 42, 0.12);
+  --mm-surface-rgb: 255, 255, 255;
+  --mm-surface-soft: #f1f5f9;
+  --mm-border: #e2e8f0;
+  --mm-text: #1f2937;
+  --mm-text-muted: #6b7280;
+  
+  /* Increased border radiuses */
+  --mm-radius-lg: 20px;
+  --mm-radius-md: 16px;
+  
+  /* Softer shadows */
+  --mm-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --mm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-color-primary: #0FA3B1; /* Use accent as primary in dark mode for pop */
+    --ion-color-primary-rgb: 15, 163, 177;
+    
+    --mm-bg: #0f172a;
+    --mm-surface: #1e293b;
+    --mm-surface-rgb: 30, 41, 59;
+    --mm-surface-soft: #334155;
+    --mm-border: #334155;
+    --mm-text: #f8fafc;
+    --mm-text-muted: #94a3b8;
+    
+    --mm-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --mm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+    
+    /* Global dark overrides if needed */
+    --ion-background-color: var(--mm-bg);
+    --ion-text-color: var(--mm-text);
+  }
 }
