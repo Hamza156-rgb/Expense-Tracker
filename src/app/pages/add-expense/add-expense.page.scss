@@ -22,13 +22,13 @@
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
-    ion-icon { font-size: 20px; color: white; }
+    ion-icon { font-size: 20px; color: rgba(255, 255, 255, 0.9); }
   }
 
   .header-text {
     flex: 1;
-    h1 { font-size: 20px; font-weight: 700; color: white; margin: 0 0 2px; }
-    p { font-size: 12px; color: rgba(255,255,255,0.8); margin: 0; }
+    h1 { font-size: 20px; font-weight: 700; color: rgba(255, 255, 255, 0.95); margin: 0 0 2px; }
+    p { font-size: 12px; color: rgba(255,255,255,0.7); margin: 0; }
   }
 
   .header-icon {
@@ -39,7 +39,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    ion-icon { font-size: 22px; color: white; }
+    ion-icon { font-size: 22px; color: rgba(255, 255, 255, 0.9); }
   }
 }
 
@@ -54,7 +54,7 @@
 }
 
 .form-group {
-  background: white;
+  background: var(--mm-surface);
   border-radius: 14px;
   padding: 14px;
   margin-bottom: 10px;
@@ -67,17 +67,17 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 700;
-  color: #374151;
+  color: var(--mm-text);
   margin-bottom: 10px;
 
   ion-icon { font-size: 16px; color: var(--ion-color-primary); }
 }
 
 .input-wrapper {
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid var(--mm-border);
   border-radius: 12px;
   padding: 0 14px;
-  background: #f9fafb;
+  background: var(--mm-surface-soft);
   display: flex;
   align-items: center;
   transition: all 0.2s;
@@ -85,10 +85,10 @@
   &:focus-within {
     border-color: var(--ion-color-primary);
     box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb),0.12);
-    background: white;
+    background: var(--mm-surface);
   }
 
-  &.error { border-color: #ef4444; }
+  &.error { border-color: var(--ion-color-danger); }
 
   &.amount-wrapper {
     padding: 6px 14px;
@@ -140,11 +140,11 @@
   background: transparent;
   padding: 12px 0;
   font-size: 15px;
-  color: #1f2937;
+  color: var(--mm-text);
   outline: none;
   width: 100%;
 
-  &::placeholder { color: #d1d5db; }
+  &::placeholder { color: var(--mm-text-muted); }
   &[type="number"]::-webkit-inner-spin-button { opacity: 0; }
 }
 
@@ -154,12 +154,12 @@
   background: transparent;
   padding: 12px 0;
   font-size: 14px;
-  color: #374151;
+  color: var(--mm-text);
   outline: none;
   resize: none;
   font-family: inherit;
   line-height: 1.5;
-  &::placeholder { color: #d1d5db; }
+  &::placeholder { color: var(--mm-text-muted); }
 }
 
 .error-text {
@@ -186,7 +186,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #254863;
+  color: var(--mm-text);
 
   ion-icon {
     font-size: 14px;
