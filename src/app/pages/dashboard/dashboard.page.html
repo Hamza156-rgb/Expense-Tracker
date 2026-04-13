@@ -119,7 +119,7 @@
       <ion-icon name="download-outline"></ion-icon>
       <span class="btn-text">Download</span>
     </button>
-    <button type="button" class="toolbar-btn" [class.danger]="bulkMode" (click)="toggleBulkMode()">
+    <button type="button" class="toolbar-btn delete-btn" (click)="toggleBulkMode()">
       <ion-icon [name]="bulkMode ? 'close-outline' : 'trash-bin-outline'"></ion-icon>
       <span class="btn-text">{{ bulkMode ? 'Cancel' : 'Delete' }}</span>
     </button>
