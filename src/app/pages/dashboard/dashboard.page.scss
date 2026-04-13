@@ -1052,6 +1052,40 @@ ion-content {
   border-radius: var(--mm-radius-md);
   padding: 14px;
   box-shadow: var(--mm-shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.budget-card-body {
+  transition: filter 0.25s ease;
+}
+
+.budget-card-body.hidden {
+  filter: blur(6px);
+  opacity: 0.65;
+}
+
+.budget-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.budget-card-overlay ion-icon {
+  font-size: 24px;
 }
 
 .budget-header {
@@ -1059,6 +1093,43 @@ ion-content {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.budget-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.budget-toggle-btn,
+.budget-edit-btn {
+  all: unset;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  transition: all 0.2s ease;
+}
+
+.budget-toggle-btn ion-icon,
+.budget-edit-btn ion-icon {
+  font-size: 16px;
+  color: var(--ion-color-primary);
+}
+
+.budget-toggle-btn:hover,
+.budget-edit-btn:hover {
+  background: rgba(var(--ion-color-primary-rgb), 0.15);
+}
+
+.budget-toggle-btn:active,
+.budget-edit-btn:active {
+  transform: scale(0.95);
 }
 
 .budget-title {

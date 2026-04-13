@@ -48,6 +48,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   budget: number | null = null;
   showBudgetModal = false;
   budgetInput: number | null = null;
+  budgetHidden = false;
   showAIInsightsModal = false;
 
   private subs: Subscription[] = [];
@@ -129,6 +130,14 @@ export class DashboardPage implements OnInit, OnDestroy {
   closeBudgetModal() {
     this.showBudgetModal = false;
     this.budgetInput = null;
+  }
+
+  toggleBudgetVisibility() {
+    this.budgetHidden = !this.budgetHidden;
+  }
+
+  get budgetVisibilityIcon(): string {
+    return this.budgetHidden ? 'eye-off-outline' : 'eye-outline';
   }
 
   openAIInsightsModal() {

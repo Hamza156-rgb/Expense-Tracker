@@ -82,35 +82,46 @@
   <!-- Budget Section -->
   <div class="budget-section" *ngIf="user">
     <div class="budget-card">
-      <div class="budget-header">
-        <div class="budget-title">
-          <ion-icon name="wallet-outline"></ion-icon>
-          <span>Budget Progress</span>
+      <div class="budget-card-body" [class.hidden]="budgetHidden">
+        <div class="budget-header">
+          <div class="budget-title">
+            <ion-icon name="wallet-outline"></ion-icon>
+            <span>Budget Progress</span>
+          </div>
+          <div class="budget-actions">
+            <button type="button" class="budget-toggle-btn" (click)="toggleBudgetVisibility()" aria-label="Toggle budget visibility">
+              <ion-icon [name]="budgetVisibilityIcon"></ion-icon>
+            </button>
+            <button type="button" class="budget-edit-btn" (click)="openBudgetModal()">
+              <ion-icon name="pencil-outline"></ion-icon>
+            </button>
+          </div>
         </div>
-        <button type="button" class="budget-edit-btn" (click)="openBudgetModal()">
-          <ion-icon name="pencil-outline"></ion-icon>
-        </button>
-      </div>
-      
-      <div class="budget-stats">
-        <div class="budget-spent">
-          <span class="label">Spent</span>
-          <span class="amount">{{ formatCurrency(monthAmount) }}</span>
+        
+        <div class="budget-stats">
+          <div class="budget-spent">
+            <span class="label">Spent</span>
+            <span class="amount">{{ formatCurrency(monthAmount) }}</span>
+          </div>
+          <div class="budget-total">
+            <span class="label">Budget</span>
+            <span class="amount">{{ budget ? formatCurrency(budget) : 'Set Budget' }}</span>
+          </div>
         </div>
-        <div class="budget-total">
-          <span class="label">Budget</span>
-          <span class="amount">{{ budget ? formatCurrency(budget) : 'Set Budget' }}</span>
-        </div>
-      </div>
 
-      <div class="budget-progress">
-        <div class="progress-bar" [class.over-budget]="isOverBudget">
-          <div class="progress-fill" [style.width.%]="monthProgress"></div>
+        <div class="budget-progress">
+          <div class="progress-bar" [class.over-budget]="isOverBudget">
+            <div class="progress-fill" [style.width.%]="monthProgress"></div>
+          </div>
+          <div class="progress-text">
+            <span class="percentage">{{ budgetProgress }}%</span>
+            <span class="status" *ngIf="isOverBudget">Over Budget</span>
+          </div>
         </div>
-        <div class="progress-text">
-          <span class="percentage">{{ budgetProgress }}%</span>
-          <span class="status" *ngIf="isOverBudget">Over Budget</span>
-        </div>
+      </div>
+      <div class="budget-card-overlay" *ngIf="budgetHidden">
+        <ion-icon name="eye-off-outline"></ion-icon>
+        <span>Budget hidden</span>
       </div>
     </div>
   </div>
