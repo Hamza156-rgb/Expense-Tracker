@@ -49,6 +49,15 @@ export class DashboardPage implements OnInit, OnDestroy {
   selectedExpenseIds: string[] = [];
   showAIInsightsModal = false;
 
+  // Sparkline data arrays
+  allTimeSparkline: number[] = [];
+  todaySparkline: number[] = [];
+  monthSparkline: number[] = [];
+
+  // Budget-related properties
+  budget: number | null = null;
+  isOverBudget: boolean = false;
+
   private subs: Subscription[] = [];
   private dataSub?: Subscription;
 
@@ -68,6 +77,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     const userSub = this.authService.user$.subscribe(user => {
       this.user = user;
       if (user) {
+        this.updateBudgetFromUser(user);
         this.loadData(user.uid);
       }
     });
@@ -291,6 +301,157 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.monthAmount = this.expenses
       .filter(e => new Date(e.date) >= monthStart)
       .reduce((s, e) => s + e.amount, 0);
+
+    // Generate sparkline data
+    this.generateSparklineData();
+  }
+
+  private generateSparklineData() {
+    this.allTimeSparkline = this.generateAllTimeSparkline();
+    this.todaySparkline = this.generateTodaySparkline();
+    this.monthSparkline = this.generateMonthSparkline();
+    this.updateBudgetStatus();
+  }
+
+  private updateBudgetFromUser(user: User) {
+    if (user.accountMode === 'business') {
+      this.budget = user.businessBudget || null;
+    } else {
+      this.budget = user.personalBudget || null;
+    }
+  }
+
+  private updateBudgetStatus() {
+    this.isOverBudget = this.budget !== null && this.budget > 0 && this.monthAmount > this.budget;
+  }
+
+  get todayTrend(): 'up' | 'down' {
+    if (this.todaySparkline.length < 2) return 'up';
+    const recent = this.todaySparkline.slice(-2);
+    return recent[1] > recent[0] ? 'up' : 'down';
+  }
+
+  get monthTrend(): 'up' | 'down' {
+    if (this.monthSparkline.length < 2) return 'up';
+    const recent = this.monthSparkline.slice(-2);
+    return recent[1] > recent[0] ? 'up' : 'down';
+  }
+
+  get allTimeTrend(): 'up' | 'down' {
+    if (this.allTimeSparkline.length < 2) return 'up';
+    const recent = this.allTimeSparkline.slice(-2);
+    return recent[1] > recent[0] ? 'up' : 'down';
+  }
+
+  private generateAllTimeSparkline(): number[] {
+    if (this.expenses.length === 0) return [30, 45, 60, 75, 85, 95, 100];
+    
+    // Group expenses by month for the last 7 months for better visualization
+    const monthlyTotals = this.groupExpensesByMonth(7);
+    const maxValue = Math.max(...monthlyTotals, 1);
+    
+    return monthlyTotals.map(value => Math.round((value / maxValue) * 100));
+  }
+
+  private generateTodaySparkline(): number[] {
+    const todayExpenses = this.expenses.filter(e => 
+      new Date(e.date).toDateString() === new Date().toDateString()
+    );
+    
+    if (todayExpenses.length === 0) return [20, 40, 60, 80, 100, 85, 70, 50];
+    
+    // Group by 3-hour periods for the whole day (8 periods)
+    const hourlyTotals = this.groupExpensesByHour(todayExpenses, 8);
+    const maxValue = Math.max(...hourlyTotals, 1);
+    
+    return hourlyTotals.map(value => Math.round((value / maxValue) * 100));
+  }
+
+  private generateMonthSparkline(): number[] {
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const monthExpenses = this.expenses.filter(e => new Date(e.date) >= monthStart);
+    
+    if (monthExpenses.length === 0) return [25, 40, 55, 70, 85, 95, 100];
+    
+    // Group by day for the last 7 days of the current month
+    const dailyTotals = this.groupExpensesByDay(monthExpenses, 7);
+    const maxValue = Math.max(...dailyTotals, 1);
+    
+    return dailyTotals.map(value => Math.round((value / maxValue) * 100));
+  }
+
+  private groupExpensesByMonth(months: number): number[] {
+    const monthlyData: { [key: string]: number } = {};
+    const now = new Date();
+    
+    for (let i = months - 1; i >= 0; i--) {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
+      monthlyData[monthKey] = 0;
+    }
+    
+    this.expenses.forEach(expense => {
+      const expenseDate = new Date(expense.date);
+      const monthKey = `${expenseDate.getFullYear()}-${expenseDate.getMonth()}`;
+      if (monthlyData.hasOwnProperty(monthKey)) {
+        monthlyData[monthKey] += expense.amount;
+      }
+    });
+    
+    return Object.values(monthlyData);
+  }
+
+  private groupExpensesByHour(expenses: Expense[], periods: number): number[] {
+    const hourlyData = new Array(periods).fill(0);
+    
+    expenses.forEach(expense => {
+      const expenseHour = new Date(expense.date).getHours();
+      const periodIndex = Math.floor((expenseHour / 24) * periods);
+      if (periodIndex >= 0 && periodIndex < periods) {
+        hourlyData[periodIndex] += expense.amount;
+      }
+    });
+    
+    return hourlyData;
+  }
+
+  private groupExpensesByDay(expenses: Expense[], days: number): number[] {
+    const dailyData = new Array(days).fill(0);
+    const now = new Date();
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const targetDate = new Date(now);
+      targetDate.setDate(now.getDate() - i);
+      targetDate.setHours(0, 0, 0, 0);
+      
+      const nextDate = new Date(targetDate);
+      nextDate.setDate(targetDate.getDate() + 1);
+      
+      expenses.forEach(expense => {
+        const expenseDate = new Date(expense.date);
+        if (expenseDate >= targetDate && expenseDate < nextDate) {
+          dailyData[days - 1 - i] += expense.amount;
+        }
+      });
+    }
+    
+    return dailyData;
+  }
+
+  private groupExpensesByWeek(expenses: Expense[], weeks: number): number[] {
+    const weeklyData = new Array(weeks).fill(0);
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    
+    expenses.forEach(expense => {
+      const expenseDate = new Date(expense.date);
+      const daysIntoMonth = Math.floor((expenseDate.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+      const weekIndex = Math.min(Math.floor(daysIntoMonth / 7), weeks - 1);
+      if (weekIndex >= 0) {
+        weeklyData[weekIndex] += expense.amount;
+      }
+    });
+    
+    return weeklyData;
   }
 
   private updateAIInsights() {

@@ -31,15 +31,20 @@
       <div class="stat-card">
         <div class="sc-top">
           <div class="sc-icon"><ion-icon name="wallet-outline"></ion-icon></div>
-          <div class="sc-trend"><ion-icon name="trending-up-outline"></ion-icon></div>
+          <div class="sc-trend" [class.down]="allTimeTrend === 'down'">
+            <ion-icon [name]="allTimeTrend === 'up' ? 'trending-up-outline' : 'trending-down-outline'"></ion-icon>
+          </div>
         </div>
         <div class="sc-amount">{{ formatCurrency(totalAmount) }}</div>
         <div class="sc-label">All Time</div>
-        <div class="sc-sparkline">
-          <div class="sp-bar" style="height: 40%"></div>
-          <div class="sp-bar" style="height: 60%"></div>
-          <div class="sp-bar" style="height: 70%"></div>
-          <div class="sp-bar active" style="height: 100%"></div>
+        <div class="sc-sparkline extended">
+          <div class="sp-bar" [style.height.%]="allTimeSparkline[0] || 30"></div>
+          <div class="sp-bar" [style.height.%]="allTimeSparkline[1] || 45"></div>
+          <div class="sp-bar" [style.height.%]="allTimeSparkline[2] || 60"></div>
+          <div class="sp-bar" [style.height.%]="allTimeSparkline[3] || 75"></div>
+          <div class="sp-bar" [style.height.%]="allTimeSparkline[4] || 85"></div>
+          <div class="sp-bar" [style.height.%]="allTimeSparkline[5] || 95"></div>
+          <div class="sp-bar active" [style.height.%]="allTimeSparkline[6] || 100"></div>
         </div>
       </div>
 
@@ -47,31 +52,42 @@
       <div class="stat-card highlighted">
         <div class="sc-top">
           <div class="sc-icon"><ion-icon name="today-outline"></ion-icon></div>
-          <div class="sc-trend down"><ion-icon name="trending-down-outline"></ion-icon></div>
+          <div class="sc-trend" [class.down]="todayTrend === 'down'">
+            <ion-icon [name]="todayTrend === 'up' ? 'trending-up-outline' : 'trending-down-outline'"></ion-icon>
+          </div>
         </div>
         <div class="sc-amount">{{ formatCurrency(todayAmount) }}</div>
         <div class="sc-label">Today</div>
-        <div class="sc-sparkline">
-          <div class="sp-bar" style="height: 100%"></div>
-          <div class="sp-bar" style="height: 50%"></div>
-          <div class="sp-bar" style="height: 30%"></div>
-          <div class="sp-bar active" style="height: 80%"></div>
+        <div class="sc-sparkline extended">
+          <div class="sp-bar" [style.height.%]="todaySparkline[0] || 20"></div>
+          <div class="sp-bar" [style.height.%]="todaySparkline[1] || 40"></div>
+          <div class="sp-bar" [style.height.%]="todaySparkline[2] || 60"></div>
+          <div class="sp-bar" [style.height.%]="todaySparkline[3] || 80"></div>
+          <div class="sp-bar" [style.height.%]="todaySparkline[4] || 100"></div>
+          <div class="sp-bar" [style.height.%]="todaySparkline[5] || 85"></div>
+          <div class="sp-bar" [style.height.%]="todaySparkline[6] || 70"></div>
+          <div class="sp-bar active" [style.height.%]="todaySparkline[7] || 50"></div>
         </div>
       </div>
 
       <!-- Card 3: This Month -->
-      <div class="stat-card">
+      <div class="stat-card" [class.over-budget]="isOverBudget">
         <div class="sc-top">
           <div class="sc-icon"><ion-icon name="calendar-outline"></ion-icon></div>
-          <div class="sc-trend"><ion-icon name="trending-up-outline"></ion-icon></div>
+          <div class="sc-trend" [class.down]="monthTrend === 'down'">
+            <ion-icon [name]="monthTrend === 'up' ? 'trending-up-outline' : 'trending-down-outline'"></ion-icon>
+          </div>
         </div>
         <div class="sc-amount">{{ formatCurrency(monthAmount) }}</div>
         <div class="sc-label">This Month</div>
-        <div class="sc-sparkline">
-          <div class="sp-bar" style="height: 40%"></div>
-          <div class="sp-bar" style="height: 60%"></div>
-          <div class="sp-bar" style="height: 70%"></div>
-          <div class="sp-bar active" style="height: 100%"></div>
+        <div class="sc-sparkline extended">
+          <div class="sp-bar" [style.height.%]="monthSparkline[0] || 25"></div>
+          <div class="sp-bar" [style.height.%]="monthSparkline[1] || 40"></div>
+          <div class="sp-bar" [style.height.%]="monthSparkline[2] || 55"></div>
+          <div class="sp-bar" [style.height.%]="monthSparkline[3] || 70"></div>
+          <div class="sp-bar" [style.height.%]="monthSparkline[4] || 85"></div>
+          <div class="sp-bar" [style.height.%]="monthSparkline[5] || 95"></div>
+          <div class="sp-bar active" [style.height.%]="monthSparkline[6] || 100"></div>
         </div>
       </div>
     </div>
