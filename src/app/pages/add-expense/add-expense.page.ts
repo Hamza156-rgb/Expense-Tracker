@@ -190,6 +190,12 @@ export class AddExpensePage implements OnInit, OnDestroy {
         parseInt(dateParts[2], 10)
       );
 
+      // Set the current time for new expenses
+      if (!this.isEditMode) {
+        const now = new Date();
+        localDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
+      }
+
       const expenseData: any = {
         title: title.trim(),
         amount: Number(amount),

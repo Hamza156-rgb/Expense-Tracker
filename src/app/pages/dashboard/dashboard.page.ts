@@ -552,6 +552,14 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
   }
 
+  formatTime(date: any): string {
+    try {
+      return new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    } catch {
+      return '';
+    }
+  }
+
   private async showToast(message: string, color: string) {
     const toast = await this.toastCtrl.create({ message, duration: 2000, color, position: 'top' });
     toast.present();

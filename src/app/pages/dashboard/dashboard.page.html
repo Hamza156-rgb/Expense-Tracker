@@ -218,16 +218,17 @@
               [style.color]="getCategoryColor(e.categoryId)">
               <ion-icon [name]="getCategoryIcon(e.categoryId)"></ion-icon>
             </div>
-            <div class="emid">
-              <div class="etitle">{{ e.title }}</div>
-              <div class="emeta">
-                <span class="ecat" [style.background]="getCategoryColor(e.categoryId) + '20'"
-                  [style.color]="getCategoryColor(e.categoryId)">
-                  {{ getCategoryName(e.categoryId) }}
-                </span>
-              </div>
-              <div class="enote" *ngIf="e.notes">{{ e.notes }}</div>
-            </div>
+             <div class="emid">
+               <div class="etitle">{{ e.title }}</div>
+               <div class="emeta">
+                 <span class="ecat" [style.background]="getCategoryColor(e.categoryId) + '20'"
+                   [style.color]="getCategoryColor(e.categoryId)">
+                   {{ getCategoryName(e.categoryId) }}
+                 </span>
+                 <span class="etime">{{ formatTime(e.date) }}</span>
+               </div>
+               <div class="enote" *ngIf="e.notes">{{ e.notes }}</div>
+             </div>
             <div class="eright">
               <div class="eamt">{{ formatCurrency(e.amount) }}</div>
             </div>
