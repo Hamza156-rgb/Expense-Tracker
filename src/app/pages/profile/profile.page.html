@@ -1,6 +1,9 @@
 <ion-content class="profile-content">
-  <!-- Header -->
+  <!-- Profile Header with Back Button -->
   <div class="profile-header">
+    <button class="back-btn" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
     <div class="avatar-large">{{ initials }}</div>
     <h2>{{ user?.firstName }} {{ user?.lastName }}</h2>
     <p>{{ user?.email }}</p>

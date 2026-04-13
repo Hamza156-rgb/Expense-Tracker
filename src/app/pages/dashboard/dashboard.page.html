@@ -14,6 +14,9 @@
         </div>
       </div>
       <div class="hdr-actions">
+        <button type="button" class="hbtn ai-btn" (click)="openAIInsightsModal()" aria-label="AI Insights">
+          <ion-icon name="analytics-outline"></ion-icon>
+        </button>
         <button type="button" class="hbtn" (click)="goToSettings()" aria-label="Open Settings">
           <ion-icon name="settings-outline"></ion-icon>
         </button>
@@ -112,19 +115,8 @@
     </div>
   </div>
 
-  <!-- AI INSIGHTS (Pinned to Top) -->
-  <div class="ai-card" *ngIf="!isLoading && aiInsights.length > 0">
-    <div class="ai-head">
-      <div class="head-left">
-        <ion-icon name="sparkles-outline"></ion-icon>
-        <span>AI Insights</span>
-      </div>
-      <div class="swipe-hint" *ngIf="aiInsights.length > 1">Swipe for more →</div>
-    </div>
-    <div class="ai-list">
-      <div class="ai-item" *ngFor="let insight of aiInsights">{{ insight }}</div>
-    </div>
-  </div>
+  <!-- AI INSIGHTS (Hidden - shown in modal instead) -->
+  <!-- Removed inline display, now shown in modal -->
 
   <!-- SEARCH & FILTER TOOLBAR -->
   <div class="tbar">
@@ -313,6 +305,33 @@
     <div class="modal-footer">
       <button type="button" class="btn-cancel" (click)="closeBudgetModal()">Cancel</button>
       <button type="button" class="btn-save" (click)="saveBudget()">Save Budget</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Insights Modal -->
+<div class="ai-modal-overlay" *ngIf="showAIInsightsModal" (click)="closeAIInsightsModal()">
+  <div class="ai-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-wrapper">
+        <ion-icon name="analytics-outline" class="modal-icon"></ion-icon>
+        <h3>AI Insights</h3>
+      </div>
+      <button type="button" class="modal-close" (click)="closeAIInsightsModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="ai-insights-container" *ngIf="aiInsights.length > 0">
+        <div class="ai-insight-item" *ngFor="let insight of aiInsights; let i = index">
+          <div class="insight-number">{{ i + 1 }}</div>
+          <div class="insight-text">{{ insight }}</div>
+        </div>
+      </div>
+      <div class="no-insights" *ngIf="aiInsights.length === 0">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <p>No AI insights available at this time.</p>
+      </div>
     </div>
   </div>
 </div>

@@ -86,6 +86,10 @@ export class ProfilePage implements OnInit, OnDestroy {
     // Moved to SettingsPage
   }
 
+  goBack() {
+    this.router.navigate(['/tabs/dashboard']);
+  }
+
   formatCurrency(amount: number): string {
     return this.settingsService.formatCurrency(amount);
   }

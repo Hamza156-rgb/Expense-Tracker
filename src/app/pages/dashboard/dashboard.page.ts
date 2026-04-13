@@ -48,6 +48,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   budget: number | null = null;
   showBudgetModal = false;
   budgetInput: number | null = null;
+  showAIInsightsModal = false;
 
   private subs: Subscription[] = [];
   private dataSub?: Subscription;
@@ -130,6 +131,14 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.budgetInput = null;
   }
 
+  openAIInsightsModal() {
+    this.showAIInsightsModal = true;
+  }
+
+  closeAIInsightsModal() {
+    this.showAIInsightsModal = false;
+  }
+
   async saveBudget() {
     if (this.budgetInput !== null && this.budgetInput >= 0) {
       const loading = await this.loadingCtrl.create({
@@ -183,13 +192,20 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.dataSub = combineLatest([
       this.expenseService.getExpenses(userId, scope),
       this.categoryService.getCategories(userId, scope)
-    ]).subscribe(([expenses, categories]) => {
-      this.expenses = expenses;
-      this.categories = categories;
-      this.applyFilter();
-      this.calculateStats();
-      this.isLoading = false;
-    });
+    ]).subscribe(
+      ([expenses, categories]) => {
+        this.expenses = expenses;
+        this.categories = categories;
+        this.applyFilter();
+        this.calculateStats();
+        this.isLoading = false;
+      },
+      (error) => {
+        console.error('Error loading dashboard data:', error);
+        this.isLoading = false;
+        this.showToast('Failed to load data. Please try again.', 'danger');
+      }
+    );
   }
 
   applyFilter() {
