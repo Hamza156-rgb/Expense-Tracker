@@ -48,6 +48,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   bulkMode = false;
   selectedExpenseIds: string[] = [];
   showAIInsightsModal = false;
+  showFilterModal = false;
+  selectedPreset = '';
 
   // Sparkline data arrays
   allTimeSparkline: number[] = [];
@@ -197,6 +199,78 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   closeAIInsightsModal() {
     this.showAIInsightsModal = false;
+  }
+
+  openFilterModal() {
+    this.showFilterModal = true;
+  }
+
+  closeFilterModal() {
+    this.showFilterModal = false;
+  }
+
+  applyAndCloseFilter() {
+    this.applyFilter();
+    this.closeFilterModal();
+  }
+
+  onPresetDateChange(preset: string) {
+    if (!preset) {
+      // Clear date filters
+      this.startDateStr = '';
+      this.endDateStr = '';
+      this.onDateRangeInputChange();
+      return;
+    }
+
+    const today = new Date();
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0];
+    };
+
+    switch (preset) {
+      case 'today':
+        this.startDateStr = formatDate(today);
+        this.endDateStr = formatDate(today);
+        break;
+      case 'yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        this.startDateStr = formatDate(yesterday);
+        this.endDateStr = formatDate(yesterday);
+        break;
+      case 'last7days':
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        this.startDateStr = formatDate(sevenDaysAgo);
+        this.endDateStr = formatDate(today);
+        break;
+      case 'last30days':
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        this.startDateStr = formatDate(thirtyDaysAgo);
+        this.endDateStr = formatDate(today);
+        break;
+      case 'thisMonth':
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        this.startDateStr = formatDate(firstDayOfMonth);
+        this.endDateStr = formatDate(today);
+        break;
+      case 'lastMonth':
+        const firstDayOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        this.startDateStr = formatDate(firstDayOfLastMonth);
+        this.endDateStr = formatDate(lastDayOfLastMonth);
+        break;
+      case 'thisYear':
+        const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+        this.startDateStr = formatDate(firstDayOfYear);
+        this.endDateStr = formatDate(today);
+        break;
+    }
+
+    // Apply filter immediately when preset is selected
+    this.onDateRangeInputChange();
   }
 
   get activeWorkspaceLabel(): string {

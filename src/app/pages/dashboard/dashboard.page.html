@@ -98,28 +98,29 @@
   <!-- AI INSIGHTS (Hidden - shown in modal instead) -->
   <!-- Removed inline display, now shown in modal -->
 
-  <!-- SEARCH & FILTER TOOLBAR -->
-  <div class="tbar">
-    <div class="search-wrap">
-      <ion-icon name="search-outline"></ion-icon>
-      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" placeholder="Search expenses..." />
-      <button type="button" class="clear-search" *ngIf="searchQuery" (click)="searchQuery = ''; applyFilter()">
+  <!-- SEARCH BAR -->
+  <div class="search-bar">
+    <div class="search-container">
+      <ion-icon name="search-outline" class="search-icon"></ion-icon>
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" placeholder="Search expenses..." class="search-input" />
+      <button type="button" class="clear-search-btn" *ngIf="searchQuery" (click)="searchQuery = ''; applyFilter()">
         <ion-icon name="close-circle"></ion-icon>
       </button>
     </div>
+  </div>
 
-    <div class="tbar-btns">
-      <button type="button" class="tbtn" [class.tbtn-on]="showFilterPanel" (click)="showFilterPanel = !showFilterPanel">
-        <ion-icon name="funnel-outline"></ion-icon>
-        <span class="badge" *ngIf="filterActive">{{ getActiveFilterBadgeCount() }}</span>
-      </button>
-      <button type="button" class="tbtn-pdf" (click)="downloadPDF()">
-        <ion-icon name="download-outline"></ion-icon>
-      </button>
-      <button type="button" class="tbtn" (click)="toggleBulkMode()">
-        <ion-icon [name]="bulkMode ? 'close-outline' : 'trash-bin-outline'"></ion-icon>
-      </button>
-    </div>
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <button type="button" class="toolbar-btn" [class.active]="filterActive" (click)="openFilterModal()">
+      <ion-icon name="funnel-outline"></ion-icon>
+      <span class="btn-badge" *ngIf="filterActive">{{ getActiveFilterBadgeCount() }}</span>
+    </button>
+    <button type="button" class="toolbar-btn" (click)="downloadPDF()">
+      <ion-icon name="download-outline"></ion-icon>
+    </button>
+    <button type="button" class="toolbar-btn" [class.danger]="bulkMode" (click)="toggleBulkMode()">
+      <ion-icon [name]="bulkMode ? 'close-outline' : 'trash-bin-outline'"></ion-icon>
+    </button>
   </div>
 
   <div class="bulk-toolbar" *ngIf="bulkMode">
@@ -154,34 +155,6 @@
       [class.qchip-on]="activeQuickDateFilter === quick.key" (click)="applyQuickDateFilter(quick.key)">
       {{ quick.label }}
     </button>
-  </div>
-
-  <!-- FILTER PANEL -->
-  <div class="fpanel" *ngIf="showFilterPanel">
-    <div class="fp-block">
-      <div class="fp-title">Categories</div>
-      <div class="fp-chips">
-        <button type="button" *ngFor="let cat of categories" class="chip" [class.chip-on]="isCategorySelected(cat.id!)"
-          [style.--cc]="cat.color" (click)="toggleCategoryFilter(cat.id!)">
-          <ion-icon [name]="cat.icon"></ion-icon>
-          {{ cat.name }}
-        </button>
-      </div>
-    </div>
-    <div class="fp-block">
-      <div class="fp-title">Date Range</div>
-      <div class="fp-dates">
-        <div class="fp-date-col">
-          <label>From</label>
-          <input type="date" [(ngModel)]="startDateStr" (ngModelChange)="onDateRangeInputChange()" />
-        </div>
-        <span class="fp-dash">—</span>
-        <div class="fp-date-col">
-          <label>To</label>
-          <input type="date" [(ngModel)]="endDateStr" (ngModelChange)="onDateRangeInputChange()" />
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- LIST HEADER -->
@@ -291,6 +264,71 @@
         <ion-icon name="sparkles-outline"></ion-icon>
         <p>No AI insights available at this time.</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="filter-modal-overlay" *ngIf="showFilterModal" (click)="closeFilterModal()">
+  <div class="filter-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-wrapper">
+        <ion-icon name="funnel-outline" class="modal-icon"></ion-icon>
+        <h3>Filter Expenses</h3>
+      </div>
+      <button type="button" class="modal-close" (click)="closeFilterModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Categories -->
+      <div class="filter-section">
+        <h4 class="section-title">Categories</h4>
+        <div class="category-chips">
+          <button type="button" *ngFor="let cat of categories" class="category-chip" [class.active]="isCategorySelected(cat.id!)"
+            [style="--cc"]="cat.color" (click)="toggleCategoryFilter(cat.id!)">
+            <ion-icon [name]="cat.icon"></ion-icon>
+            {{ cat.name }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Date Range -->
+      <div class="filter-section">
+        <h4 class="section-title">Date Range</h4>
+        
+        <!-- Preset Options -->
+        <div class="preset-options">
+          <select class="preset-select" #presetSelect (change)="onPresetDateChange(presetSelect.value)">
+            <option value="">Select Date Range</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="last7days">Last 7 Days</option>
+            <option value="last30days">Last 30 Days</option>
+            <option value="thisMonth">This Month</option>
+            <option value="lastMonth">Last Month</option>
+            <option value="thisYear">This Year</option>
+          </select>
+        </div>
+        
+        <!-- Custom Date Range -->
+        <div class="date-range">
+          <div class="date-input-group">
+            <label>From</label>
+            <input type="date" [(ngModel)]="startDateStr" (ngModelChange)="onDateRangeInputChange()" class="date-input" />
+          </div>
+          <span class="date-separator">—</span>
+          <div class="date-input-group">
+            <label>To</label>
+            <input type="date" [(ngModel)]="endDateStr" (ngModelChange)="onDateRangeInputChange()" class="date-input" />
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="clearFilters()">Clear All</button>
+      <button type="button" class="btn-primary" (click)="applyAndCloseFilter()">Apply Filters</button>
     </div>
   </div>
 </div>
