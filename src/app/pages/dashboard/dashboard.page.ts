@@ -45,10 +45,6 @@ export class DashboardPage implements OnInit, OnDestroy {
   totalAmount = 0;
   todayAmount = 0;
   monthAmount = 0;
-  budget: number | null = null;
-  showBudgetModal = false;
-  budgetInput: number | null = null;
-  budgetHidden = false;
   bulkMode = false;
   selectedExpenseIds: string[] = [];
   showAIInsightsModal = false;
@@ -72,21 +68,10 @@ export class DashboardPage implements OnInit, OnDestroy {
     const userSub = this.authService.user$.subscribe(user => {
       this.user = user;
       if (user) {
-        this.updateBudgetFromUser(user);
         this.loadData(user.uid);
-      } else {
-        this.budget = null;
       }
     });
     this.subs.push(userSub);
-  }
-
-  private updateBudgetFromUser(user: User) {
-    if (user.accountMode === 'business') {
-      this.budget = user.businessBudget || null;
-    } else {
-      this.budget = user.personalBudget || null;
-    }
   }
 
   ngOnDestroy() {
@@ -106,40 +91,6 @@ export class DashboardPage implements OnInit, OnDestroy {
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
-  }
-
-  get monthProgress(): number {
-    if (!this.budget || this.budget <= 0) return 0;
-    const pct = (this.monthAmount / this.budget) * 100;
-    return pct > 100 ? 100 : Math.round(pct);
-  }
-
-  get budgetProgress(): number {
-    if (!this.budget || this.budget <= 0) return 0;
-    const pct = (this.monthAmount / this.budget) * 100;
-    return Math.round(pct * 10) / 10; // One decimal place
-  }
-
-  get isOverBudget(): boolean {
-    return this.budget !== null && this.budget > 0 && this.monthAmount > this.budget;
-  }
-
-  openBudgetModal() {
-    this.budgetInput = this.budget;
-    this.showBudgetModal = true;
-  }
-
-  closeBudgetModal() {
-    this.showBudgetModal = false;
-    this.budgetInput = null;
-  }
-
-  toggleBudgetVisibility() {
-    this.budgetHidden = !this.budgetHidden;
-  }
-
-  get budgetVisibilityIcon(): string {
-    return this.budgetHidden ? 'eye-off-outline' : 'eye-outline';
   }
 
   toggleBulkMode() {
@@ -236,31 +187,6 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   closeAIInsightsModal() {
     this.showAIInsightsModal = false;
-  }
-
-  async saveBudget() {
-    if (this.budgetInput !== null && this.budgetInput >= 0) {
-      const loading = await this.loadingCtrl.create({
-        message: 'Saving budget...',
-        spinner: 'crescent'
-      });
-      await loading.present();
-      try {
-        const uid = this.user?.uid;
-        const mode = this.user?.accountMode === 'business' ? 'business' : 'personal';
-        if (uid) {
-          await this.authService.updateUserBudget(uid, this.budgetInput, mode);
-          this.budget = this.budgetInput;
-          this.showBudgetModal = false;
-          this.budgetInput = null;
-          await loading.dismiss();
-          this.showToast('Budget saved successfully', 'success');
-        }
-      } catch (err) {
-        await loading.dismiss();
-        this.showToast('Failed to save budget', 'danger');
-      }
-    }
   }
 
   get activeWorkspaceLabel(): string {

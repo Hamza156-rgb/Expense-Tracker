@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { AlertController, ModalController, ToastController, LoadingController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
@@ -20,6 +20,12 @@ export class ProfilePage implements OnInit, OnDestroy {
   thisMonthAmount = 0;
   avgPerDay = 0;
   private expenseSub?: Subscription;
+  
+  // Budget-related properties
+  budget: number | null = null;
+  showBudgetModal = false;
+  budgetInput: number | null = null;
+  readonly Math = Math;
 
   constructor(
     private authService: AuthService,
@@ -28,7 +34,8 @@ export class ProfilePage implements OnInit, OnDestroy {
     private modalCtrl: ModalController,
     private toastCtrl: ToastController,
     private router: Router,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private loadingCtrl: LoadingController
   ) { }
 
   ngOnInit() {
@@ -39,11 +46,14 @@ export class ProfilePage implements OnInit, OnDestroy {
       this.totalAmount = 0;
       this.thisMonthAmount = 0;
       this.avgPerDay = 0;
-      if (!user) return;
-
-      this.expenseSub = this.expenseService
-        .getExpenses(user.uid, this.getWorkspaceScope(user))
-        .subscribe(expenses => this.calculateStats(expenses));
+      if (user) {
+        this.updateBudgetFromUser(user);
+        this.expenseSub = this.expenseService
+          .getExpenses(user.uid, this.getWorkspaceScope(user))
+          .subscribe(expenses => this.calculateStats(expenses));
+      } else {
+        this.budget = null;
+      }
     });
   }
 
@@ -139,5 +149,70 @@ export class ProfilePage implements OnInit, OnDestroy {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
     return slug ? `shop-${slug}` : 'shop-default';
+  }
+
+  // Budget-related methods
+  private updateBudgetFromUser(user: User) {
+    if (user.accountMode === 'business') {
+      this.budget = user.businessBudget || null;
+    } else {
+      this.budget = user.personalBudget || null;
+    }
+  }
+
+  get monthProgress(): number {
+    if (!this.budget || this.budget <= 0) return 0;
+    const pct = (this.thisMonthAmount / this.budget) * 100;
+    return pct > 100 ? 100 : Math.round(pct);
+  }
+
+  get budgetProgress(): number {
+    if (!this.budget || this.budget <= 0) return 0;
+    const pct = (this.thisMonthAmount / this.budget) * 100;
+    return Math.round(pct * 10) / 10; // One decimal place
+  }
+
+  get isOverBudget(): boolean {
+    return this.budget !== null && this.budget > 0 && this.thisMonthAmount > this.budget;
+  }
+
+  openBudgetModal() {
+    this.budgetInput = this.budget;
+    this.showBudgetModal = true;
+  }
+
+  closeBudgetModal() {
+    this.showBudgetModal = false;
+    this.budgetInput = null;
+  }
+
+  async saveBudget() {
+    if (this.budgetInput !== null && this.budgetInput >= 0) {
+      const loading = await this.loadingCtrl.create({
+        message: 'Saving budget...',
+        spinner: 'crescent'
+      });
+      await loading.present();
+      try {
+        const uid = this.user?.uid;
+        const mode = this.user?.accountMode === 'business' ? 'business' : 'personal';
+        if (uid) {
+          await this.authService.updateUserBudget(uid, this.budgetInput, mode);
+          this.budget = this.budgetInput;
+          this.showBudgetModal = false;
+          this.budgetInput = null;
+          await loading.dismiss();
+          this.showToast('Budget saved successfully', 'success');
+        }
+      } catch (err) {
+        await loading.dismiss();
+        this.showToast('Failed to save budget', 'danger');
+      }
+    }
+  }
+
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastCtrl.create({ message, duration: 2000, color, position: 'top' });
+    toast.present();
   }
 }
