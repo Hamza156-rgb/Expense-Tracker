@@ -147,6 +147,22 @@
       <button type="button" class="tbtn-pdf" (click)="downloadPDF()">
         <ion-icon name="download-outline"></ion-icon>
       </button>
+      <button type="button" class="tbtn" (click)="toggleBulkMode()">
+        <ion-icon [name]="bulkMode ? 'close-outline' : 'trash-bin-outline'"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="bulk-toolbar" *ngIf="bulkMode">
+    <div class="bulk-action-row">
+      <button type="button" class="tbtn" (click)="toggleSelectAll()">
+        <ion-icon [name]="allItemsSelected ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+        <span>{{ allItemsSelected ? 'Deselect all' : 'Select all' }}</span>
+      </button>
+      <button type="button" class="tbtn delete-selected" [disabled]="selectedCount === 0" (click)="confirmDeleteSelected()">
+        <ion-icon name="trash-outline"></ion-icon>
+        <span>Delete {{ selectedCount }}</span>
+      </button>
     </div>
   </div>
 
@@ -245,7 +261,10 @@
 
       <ion-item-sliding *ngFor="let e of group.expenses; trackBy: trackByExpense" class="ecard-slider" #slidingItem>
         <ion-item class="ecard-item" lines="none" detail="false">
-          <div class="ecard">
+          <div class="ecard" [class.bulk-active]="bulkMode">
+            <div class="select-checkbox" *ngIf="bulkMode" (click)="toggleExpenseSelection(e)">
+              <ion-icon [name]="selectedExpenseIds.includes(e.id || '') ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+            </div>
             <div class="eico" [style.background]="getCategoryColor(e.categoryId) + '22'"
               [style.color]="getCategoryColor(e.categoryId)">
               <ion-icon [name]="getCategoryIcon(e.categoryId)"></ion-icon>
@@ -267,7 +286,7 @@
           </div>
         </ion-item>
 
-        <ion-item-options side="end">
+        <ion-item-options side="end" *ngIf="!bulkMode">
           <ion-item-option class="opt-edit" color="secondary" (click)="editExpense(e); slidingItem.close()">
             <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
           </ion-item-option>

@@ -841,6 +841,75 @@ ion-content {
   }
 }
 
+.select-checkbox {
+  width: 34px;
+  min-width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ion-color-primary);
+}
+
+.select-checkbox ion-icon {
+  font-size: 20px;
+}
+
+.ecard.bulk-active {
+  border-color: rgba(var(--ion-color-primary-rgb), 0.4);
+  box-shadow: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.18), 0 6px 14px rgba(0, 0, 0, 0.05);
+}
+
+.bulk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.bulk-action-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.bulk-toolbar .tbtn {
+  width: auto;
+  min-width: 110px;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: 12px;
+  font-size: 13px;
+  flex: 0 1 auto;
+}
+
+.bulk-toolbar .tbtn ion-icon {
+  margin-right: 8px;
+}
+
+.bulk-toolbar .tbtn span {
+  white-space: nowrap;
+}
+
+.bulk-toolbar .tbtn.delete-selected {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--ion-color-danger);
+}
+
+.bulk-toolbar .tbtn.delete-selected ion-icon {
+  color: var(--ion-color-danger);
+}
+
+.bulk-toolbar .tbtn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .opt-edit, .opt-del {
   margin: 4px 0 4px 10px;
   border-radius: 14px;

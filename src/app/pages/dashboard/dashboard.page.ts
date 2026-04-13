@@ -49,6 +49,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   showBudgetModal = false;
   budgetInput: number | null = null;
   budgetHidden = false;
+  bulkMode = false;
+  selectedExpenseIds: string[] = [];
   showAIInsightsModal = false;
 
   private subs: Subscription[] = [];
@@ -138,6 +140,94 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   get budgetVisibilityIcon(): string {
     return this.budgetHidden ? 'eye-off-outline' : 'eye-outline';
+  }
+
+  toggleBulkMode() {
+    this.bulkMode = !this.bulkMode;
+    if (!this.bulkMode) {
+      this.selectedExpenseIds = [];
+    }
+  }
+
+  get selectedCount(): number {
+    return this.selectedExpenseIds.length;
+  }
+
+  get allItemsSelected(): boolean {
+    const visibleIds = this.filteredExpenses
+      .map(expense => expense.id)
+      .filter((id): id is string => !!id);
+    return visibleIds.length > 0 && visibleIds.every(id => this.selectedExpenseIds.includes(id));
+  }
+
+  toggleSelectAll() {
+    const visibleIds = this.filteredExpenses
+      .map(expense => expense.id)
+      .filter((id): id is string => !!id);
+
+    if (this.allItemsSelected) {
+      this.selectedExpenseIds = [];
+    } else {
+      this.selectedExpenseIds = visibleIds;
+    }
+  }
+
+  toggleExpenseSelection(expense: Expense) {
+    if (!expense.id) return;
+    const index = this.selectedExpenseIds.indexOf(expense.id);
+    if (index >= 0) {
+      this.selectedExpenseIds.splice(index, 1);
+    } else {
+      this.selectedExpenseIds.push(expense.id);
+    }
+  }
+
+  async confirmDeleteSelected() {
+    if (this.selectedCount === 0) return;
+
+    const alert = await this.alertCtrl.create({
+      header: 'Delete Selected Expenses',
+      message: `Delete ${this.selectedCount} selected expense${this.selectedCount > 1 ? 's' : ''}? This cannot be undone.`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: async () => {
+            await this.deleteSelectedExpenses();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async deleteSelectedExpenses() {
+    const loading = await this.loadingCtrl.create({
+      message: 'Deleting selected expenses...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
+    const results = await Promise.allSettled(
+      this.selectedExpenseIds.map(id => this.expenseService.deleteExpense(id))
+    );
+
+    await loading.dismiss();
+
+    const successCount = results.filter(r => r.status === 'fulfilled').length;
+    const failedCount = results.length - successCount;
+
+    if (successCount > 0) {
+      this.showToast(`${successCount} expense${successCount > 1 ? 's' : ''} deleted`, 'success');
+    }
+    if (failedCount > 0) {
+      this.showToast(`${failedCount} failed to delete`, 'danger');
+    }
+
+    this.selectedExpenseIds = [];
+    this.bulkMode = false;
   }
 
   openAIInsightsModal() {
