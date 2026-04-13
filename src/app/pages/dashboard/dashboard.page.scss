@@ -1370,15 +1370,43 @@ ion-content {
 
       ion-icon {
         color: white;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
       }
 
       .btn-text {
         color: white;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
       }
 
       &:hover {
         background: linear-gradient(160deg, #07263b 0%, var(--ion-color-danger-shade) 100%);
         box-shadow: 0 8px 25px rgba(var(--ion-color-danger-rgb), 0.4);
+        
+        ion-icon {
+          color: white;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+        }
+        
+        .btn-text {
+          color: white;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+        }
+      }
+      
+      &:active {
+        background: linear-gradient(160deg, #07263b 0%, var(--ion-color-danger-tint) 100%);
+        transform: translateY(-1px) scale(0.98);
+        transition: all 0.1s ease;
+        
+        ion-icon {
+          color: white !important;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
+        }
+        
+        .btn-text {
+          color: white !important;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
+        }
       }
 
       &::before {
