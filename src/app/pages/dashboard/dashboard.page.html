@@ -98,25 +98,27 @@
           </div>
         </div>
         
-        <div class="budget-stats">
-          <div class="budget-spent">
-            <span class="label">Spent</span>
-            <span class="amount">{{ formatCurrency(monthAmount) }}</span>
+        <div class="budget-overview">
+          <div class="spent-amount">
+            <span class="amount-label">Spent</span>
+            <span class="amount-value">{{ formatCurrency(monthAmount) }}</span>
           </div>
-          <div class="budget-total">
-            <span class="label">Budget</span>
-            <span class="amount">{{ budget ? formatCurrency(budget) : 'Set Budget' }}</span>
+          
+          <div class="progress-section">
+            <div class="progress-bar" [class.over-budget]="isOverBudget">
+              <div class="progress-fill" [style.width.%]="monthProgress"></div>
+            </div>
+            <div class="progress-percentage">{{ budgetProgress }}%</div>
+          </div>
+          
+          <div class="total-amount">
+            <span class="amount-label">Budget</span>
+            <span class="amount-value">{{ budget ? formatCurrency(budget) : 'Set Budget' }}</span>
           </div>
         </div>
 
-        <div class="budget-progress">
-          <div class="progress-bar" [class.over-budget]="isOverBudget">
-            <div class="progress-fill" [style.width.%]="monthProgress"></div>
-          </div>
-          <div class="progress-text">
-            <span class="percentage">{{ budgetProgress }}%</span>
-            <span class="status" *ngIf="isOverBudget">Over Budget</span>
-          </div>
+        <div class="budget-status" *ngIf="isOverBudget">
+          <span class="status">Over Budget</span>
         </div>
       </div>
       <div class="budget-card-overlay" *ngIf="budgetHidden">

@@ -1248,36 +1248,90 @@ ion-content {
   }
 }
 
-.budget-stats {
+.budget-overview {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  padding: 10px 12px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 12px 16px;
   background: var(--mm-surface-soft);
   border-radius: 12px;
   border: 1px solid var(--mm-border);
 }
 
-.budget-spent,
-.budget-total {
+.spent-amount,
+.total-amount {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
 }
 
-.label {
-  font-size: 10px;
-  font-weight: 700;
+.amount-label {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--mm-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.5px;
 }
 
-.amount {
+.amount-value {
   font-size: 14px;
   font-weight: 800;
   color: var(--mm-text);
+}
+
+.progress-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0 16px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--mm-border);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--ion-color-success), #10b981);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  &.over-budget .progress-fill {
+    background: linear-gradient(90deg, #f87171, var(--ion-color-danger));
+  }
+}
+
+.progress-percentage {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ion-color-success);
+}
+
+.budget-status {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.status {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ion-color-danger);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--ion-color-danger-rgb), 0.2);
 }
 
 .budget-progress {
@@ -1350,17 +1404,20 @@ ion-content {
     font-size: 13px;
   }
 
-  .budget-stats {
-    padding: 8px 10px;
-    gap: 8px;
+  .budget-overview {
+    padding: 8px 12px;
   }
 
-  .amount {
+  .amount-value {
     font-size: 13px;
   }
 
   .progress-bar {
     height: 7px;
+  }
+
+  .progress-section {
+    margin: 0 12px;
   }
 }
 
@@ -1373,14 +1430,11 @@ ion-content {
     font-size: 12px;
   }
 
-  .budget-stats {
+  .budget-overview {
     padding: 6px 8px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
   }
 
-  .amount {
+  .amount-value {
     font-size: 12px;
   }
 
@@ -1388,7 +1442,11 @@ ion-content {
     height: 6px;
   }
 
-  .percentage {
+  .progress-section {
+    margin: 0 8px;
+  }
+
+  .progress-percentage {
     font-size: 11px;
   }
 }
