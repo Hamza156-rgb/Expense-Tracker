@@ -14,17 +14,10 @@
         </div>
       </div>
       <div class="hdr-actions">
-        <!-- <button type="button" class="hbtn ai-btn" (click)="goToAssistant()" aria-label="Open AI Assistant">
-          <ion-icon name="sparkles-outline"></ion-icon>
-        </button>
-        <button type="button" class="hbtn" (click)="goToCategories()" aria-label="Open Categories">
-          <ion-icon name="grid-outline"></ion-icon>
-        </button> -->
         <button type="button" class="hbtn" (click)="goToSettings()" aria-label="Open Settings">
           <ion-icon name="settings-outline"></ion-icon>
         </button>
         <button type="button" class="hbtn hbtn-red" (click)="logout()" aria-label="Logout">
-
           <ion-icon name="log-out-outline"></ion-icon>
         </button>
       </div>
@@ -71,17 +64,54 @@
         </div>
         <div class="sc-amount">{{ formatCurrency(monthAmount) }}</div>
         <div class="sc-label">This Month</div>
-        <div class="sc-progress-bar">
-          <div class="sc-fill" [style.width.%]="monthProgress"></div>
+        <div class="sc-sparkline">
+          <div class="sp-bar" style="height: 40%"></div>
+          <div class="sp-bar" style="height: 60%"></div>
+          <div class="sp-bar" style="height: 70%"></div>
+          <div class="sp-bar active" style="height: 100%"></div>
         </div>
       </div>
     </div>
   </div>
 </ion-header>
 
-
-
 <ion-content fullscreen="true" class="dashboard-content">
+  <!-- Budget Section -->
+  <div class="budget-section" *ngIf="user">
+    <div class="budget-card">
+      <div class="budget-header">
+        <div class="budget-title">
+          <ion-icon name="wallet-outline"></ion-icon>
+          <span>Budget Progress</span>
+        </div>
+        <button type="button" class="budget-edit-btn" (click)="openBudgetModal()">
+          <ion-icon name="pencil-outline"></ion-icon>
+        </button>
+      </div>
+      
+      <div class="budget-stats">
+        <div class="budget-spent">
+          <span class="label">Spent</span>
+          <span class="amount">{{ formatCurrency(monthAmount) }}</span>
+        </div>
+        <div class="budget-total">
+          <span class="label">Budget</span>
+          <span class="amount">{{ budget ? formatCurrency(budget) : 'Set Budget' }}</span>
+        </div>
+      </div>
+
+      <div class="budget-progress">
+        <div class="progress-bar" [class.over-budget]="isOverBudget">
+          <div class="progress-fill" [style.width.%]="monthProgress"></div>
+        </div>
+        <div class="progress-text">
+          <span class="percentage">{{ budgetProgress }}%</span>
+          <span class="status" *ngIf="isOverBudget">Over Budget</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- AI INSIGHTS (Pinned to Top) -->
   <div class="ai-card" *ngIf="!isLoading && aiInsights.length > 0">
     <div class="ai-head">
@@ -173,7 +203,6 @@
       <span class="lhdr-count">{{ filteredExpenses.length }}</span>
     </div>
     <div class="lhdr-chart" *ngIf="!isLoading && groupedExpenses.length > 0">
-      <!-- Mini Category Breakdown Placeholder -->
       <div class="mini-pie-chart"></div>
       <span class="chart-lbl">Categories</span>
     </div>
@@ -246,15 +275,44 @@
       </ion-item-sliding>
     </div>
   </div>
-
-
-
-  <!-- <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-  <ion-fab-button (click)="addExpense()"
-    style="--background: linear-gradient(135deg,var(--ion-color-primary),var(--ion-color-secondary)); --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb),.5);">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab> -->
-
-
 </ion-content>
+
+<!-- Budget Modal -->
+<div class="budget-modal-overlay" *ngIf="showBudgetModal" (click)="closeBudgetModal()">
+  <div class="budget-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Set Monthly Budget</h3>
+      <button type="button" class="modal-close" (click)="closeBudgetModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">Enter your monthly {{ user?.accountMode === 'business' ? 'business' : 'personal' }} budget to track your spending progress.</p>
+      <div class="budget-input-wrap">
+        <input 
+          type="number" 
+          [(ngModel)]="budgetInput" 
+          placeholder="Enter amount" 
+          class="budget-input"
+          min="0"
+          step="100"
+        />
+      </div>
+      <div class="budget-preview" *ngIf="budgetInput !== null && budgetInput > 0">
+        <div class="preview-bar">
+          <div class="preview-fill" [style.width.%]="Math.min(100, (monthAmount / budgetInput) * 100)"></div>
+        </div>
+        <div class="preview-info">
+          <span>{{ formatCurrency(monthAmount) }} spent of {{ formatCurrency(budgetInput) }}</span>
+          <span [class.over]="monthAmount > budgetInput">
+            {{ Math.min(100, (monthAmount / budgetInput) * 100) | number:'1.0-1' }}% used
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="closeBudgetModal()">Cancel</button>
+      <button type="button" class="btn-save" (click)="saveBudget()">Save Budget</button>
+    </div>
+  </div>
+</div>

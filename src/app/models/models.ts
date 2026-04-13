@@ -15,6 +15,8 @@ export interface User {
   accountMode?: 'personal' | 'business';
   businessName?: string;
   businessWorkspaceId?: string;
+  personalBudget?: number; // Monthly budget for personal mode
+  businessBudget?: number; // Monthly budget for business mode
 }
 
 // Category Model
