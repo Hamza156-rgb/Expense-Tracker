@@ -157,7 +157,8 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn-cancel" (click)="closeBudgetModal()">Cancel</button>
-      <button type="button" class="btn-save" (click)="saveBudget()">Save Budget</button>
+      <button type="button" class="btn-clear" *ngIf="budget" (click)="clearBudget()">Clear Budget</button>
+      <button type="button" class="btn-save" (click)="saveBudget()">{{ budget ? 'Update Budget' : 'Set Budget' }}</button>
     </div>
   </div>
 </div>

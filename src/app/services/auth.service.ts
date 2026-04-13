@@ -70,7 +70,7 @@ export class AuthService {
     await this.router.navigate(['/login']);
   }
 
-  async updateUserBudget(userId: string, budget: number, mode: 'personal' | 'business'): Promise<void> {
+  async updateUserBudget(userId: string, budget: number | null, mode: 'personal' | 'business'): Promise<void> {
     const field = mode === 'business' ? 'businessBudget' : 'personalBudget';
     await this.afs.doc(`users/${userId}`).update({ [field]: budget });
   }

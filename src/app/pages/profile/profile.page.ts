@@ -211,6 +211,43 @@ export class ProfilePage implements OnInit, OnDestroy {
     }
   }
 
+  async clearBudget() {
+    const alert = await this.alertCtrl.create({
+      header: 'Clear Budget',
+      message: 'Are you sure you want to remove your budget? This will disable budget tracking.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Clear Budget',
+          role: 'destructive',
+          handler: async () => {
+            const loading = await this.loadingCtrl.create({
+              message: 'Clearing budget...',
+              spinner: 'crescent'
+            });
+            await loading.present();
+            try {
+              const uid = this.user?.uid;
+              const mode = this.user?.accountMode === 'business' ? 'business' : 'personal';
+              if (uid) {
+                await this.authService.updateUserBudget(uid, null, mode);
+                this.budget = null;
+                this.showBudgetModal = false;
+                this.budgetInput = null;
+                await loading.dismiss();
+                this.showToast('Budget cleared successfully', 'success');
+              }
+            } catch (err) {
+              await loading.dismiss();
+              this.showToast('Failed to clear budget', 'danger');
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   private async showToast(message: string, color: string) {
     const toast = await this.toastCtrl.create({ message, duration: 2000, color, position: 'top' });
     toast.present();

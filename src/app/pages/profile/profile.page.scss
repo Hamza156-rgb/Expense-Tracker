@@ -788,6 +788,7 @@
 }
 
 .btn-cancel,
+.btn-clear,
 .btn-save {
   flex: 1;
   padding: 12px 16px;
@@ -806,6 +807,21 @@
 
   &:hover {
     background: var(--mm-border);
+  }
+}
+
+.btn-clear {
+  background: rgba(var(--ion-color-warning-rgb), 0.1);
+  color: var(--ion-color-warning);
+  border: 1px solid rgba(var(--ion-color-warning-rgb), 0.3);
+
+  &:hover {
+    background: rgba(var(--ion-color-warning-rgb), 0.2);
+    border-color: rgba(var(--ion-color-warning-rgb), 0.5);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
