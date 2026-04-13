@@ -1,4 +1,4 @@
-package com.example.app;
+package com.hamzarfb.money_map;
 
 import com.getcapacitor.BridgeActivity;
 
