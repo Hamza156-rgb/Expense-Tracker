@@ -113,8 +113,7 @@
   <div class="toolbar">
     <button type="button" class="toolbar-btn" [class.active]="filterActive" (click)="openFilterModal()">
       <ion-icon name="funnel-outline"></ion-icon>
-      <span class="btn-text">Filter</span>
-      <span class="btn-badge" *ngIf="filterActive">{{ getActiveFilterBadgeCount() }}</span>
+      <span class="btn-text">Filter{{ filterActive ? ' (' + getActiveFilterBadgeCount() + ')' : '' }}</span>
     </button>
     <button type="button" class="toolbar-btn" (click)="downloadPDF()">
       <ion-icon name="download-outline"></ion-icon>

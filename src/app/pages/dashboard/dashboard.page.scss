@@ -1283,23 +1283,6 @@ ion-content {
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
     }
 
-    .btn-badge {
-      position: absolute;
-      top: -4px;
-      right: -4px;
-      background: var(--ion-color-secondary);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 5px;
-      border-radius: 10px;
-      min-width: 18px;
-      text-align: center;
-      box-shadow: 0 3px 6px rgba(var(--ion-color-secondary-rgb), 0.4);
-      border: 2px solid white;
-      z-index: 2;
-    }
-
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(7, 38, 59, 0.4);
@@ -1422,15 +1405,6 @@ ion-content {
         font-size: 9px;
         letter-spacing: 0.3px;
       }
-
-      .btn-badge {
-        top: -3px;
-        right: -3px;
-        font-size: 9px;
-        padding: 1px 4px;
-        min-width: 16px;
-        border-radius: 8px;
-      }
     }
   }
 
@@ -1441,6 +1415,7 @@ ion-content {
     .toolbar-btn {
       max-width: 90px;
       height: 48px;
+      gap: 2px;
 
       ion-icon {
         font-size: 16px;
