@@ -13,8 +13,22 @@ export class AuthLoadingPage implements OnInit {
 
   ngOnInit() {
     this.afAuth.authState.pipe(take(1)).subscribe(user => {
-      this.router.navigate([user ? '/tabs/dashboard' : '/login'], { replaceUrl: true });
+      if (user) {
+        this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
+        return;
+      }
+      // First-time visitors (who haven't completed onboarding) see the intro.
+      const onboarded = this.hasCompletedOnboarding();
+      this.router.navigate([onboarded ? '/login' : '/onboarding'], { replaceUrl: true });
     });
+  }
+
+  private hasCompletedOnboarding(): boolean {
+    try {
+      return localStorage.getItem('onboardingComplete') === 'true';
+    } catch {
+      return true; // If storage is unavailable, skip onboarding rather than loop.
+    }
   }
 }
 

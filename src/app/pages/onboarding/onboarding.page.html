@@ -1,0 +1,48 @@
+<ion-content class="onboarding-content" fullscreen="true">
+  <div class="ob-wrap" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+
+    <!-- Top bar: brand + skip -->
+    <div class="ob-top">
+      <div class="ob-brand">
+        <ion-icon name="wallet"></ion-icon>
+        <span>Money Map</span>
+      </div>
+      <button type="button" class="ob-skip" *ngIf="!isLast" (click)="skip()">Skip</button>
+    </div>
+
+    <!-- Slides track -->
+    <div class="ob-viewport">
+      <div class="ob-track" [style.transform]="'translateX(' + (-current * 100) + '%)'">
+        <div class="ob-slide" *ngFor="let slide of slides; trackBy: trackBySlide">
+          <div class="ob-art">
+            <div class="ob-icon-ring">
+              <ion-icon [name]="slide.icon"></ion-icon>
+            </div>
+          </div>
+          <h1 class="ob-title">{{ slide.title }}</h1>
+          <p class="ob-text">{{ slide.text }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer: dots + actions -->
+    <div class="ob-footer">
+      <div class="ob-dots">
+        <button type="button" class="ob-dot" *ngFor="let slide of slides; let i = index"
+          [class.active]="i === current" (click)="goTo(i)" [attr.aria-label]="'Go to slide ' + (i + 1)">
+        </button>
+      </div>
+
+      <button type="button" class="btn-primary ob-next" (click)="next()">
+        {{ isLast ? 'Get Started' : 'Next' }}
+        <ion-icon [name]="isLast ? 'arrow-forward-outline' : 'chevron-forward-outline'"></ion-icon>
+      </button>
+
+      <p class="ob-signin">
+        Already have an account?
+        <span class="link-text" (click)="signIn()">Sign In</span>
+      </p>
+    </div>
+
+  </div>
+</ion-content>

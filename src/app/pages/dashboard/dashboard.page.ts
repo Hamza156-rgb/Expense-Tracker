@@ -9,6 +9,17 @@ import { ExportService } from '../../services/export.service';
 import { Expense, Category, ExpenseFilter, User, WorkspaceScope } from '../../models/models';
 import { SettingsService } from '../../services/settings.service';
 
+// Precomputed display fields so the expense list template binds plain
+// properties instead of calling functions (which would re-run on every
+// change-detection cycle).
+interface ExpenseRow extends Expense {
+  _catName: string;
+  _catColor: string;
+  _catIcon: string;
+  _amountLabel: string;
+  _timeLabel: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
@@ -30,8 +41,9 @@ export class DashboardPage implements OnInit, OnDestroy {
   isLoading = true;
   expenses: Expense[] = [];
   filteredExpenses: Expense[] = [];
-  groupedExpenses: Array<{ dateLabel: string; expenses: Expense[] }> = [];
+  groupedExpenses: Array<{ dateLabel: string; expenses: ExpenseRow[] }> = [];
   categories: Category[] = [];
+  private categoryMap = new Map<string, Category>();
 
   filterActive = false;
   searchQuery = '';
@@ -305,6 +317,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       ([expenses, categories]) => {
         this.expenses = expenses;
         this.categories = categories;
+        this.categoryMap = new Map(categories.map(c => [c.id || '', c]));
         this.applyFilter();
         this.calculateStats();
         this.isLoading = false;
@@ -343,8 +356,11 @@ export class DashboardPage implements OnInit, OnDestroy {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    // Update groupedExpenses
-    const groups: { [key: string]: Expense[] } = {};
+    // Update groupedExpenses. Resolve each expense's display fields ONCE here
+    // (category name/color/icon, formatted amount and time) so the list
+    // template binds plain properties instead of calling functions on every
+    // change-detection cycle.
+    const groups: { [key: string]: ExpenseRow[] } = {};
     const dateOrder: string[] = [];
     this.filteredExpenses.forEach(e => {
       const label = this.formatDate(e.date);
@@ -352,7 +368,15 @@ export class DashboardPage implements OnInit, OnDestroy {
         groups[label] = [];
         dateOrder.push(label);
       }
-      groups[label].push(e);
+      const cat = this.categoryMap.get(e.categoryId);
+      groups[label].push({
+        ...e,
+        _catName: cat?.name || 'Uncategorized',
+        _catColor: cat?.color || '#64748b',
+        _catIcon: cat?.icon || 'ellipsis-horizontal',
+        _amountLabel: this.formatCurrency(e.amount),
+        _timeLabel: this.formatTime(e.date)
+      });
     });
     this.groupedExpenses = dateOrder.map(dateLabel => ({
       dateLabel,
@@ -606,15 +630,15 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   getCategoryName(catId: string): string {
-    return this.categories.find(c => c.id === catId)?.name || 'Uncategorized';
+    return this.categoryMap.get(catId)?.name || 'Uncategorized';
   }
 
   getCategoryColor(catId: string): string {
-    return this.categories.find(c => c.id === catId)?.color || '#64748b';
+    return this.categoryMap.get(catId)?.color || '#64748b';
   }
 
   getCategoryIcon(catId: string): string {
-    return this.categories.find(c => c.id === catId)?.icon || 'ellipsis-horizontal';
+    return this.categoryMap.get(catId)?.icon || 'ellipsis-horizontal';
   }
 
   toggleCategoryFilter(catId: string) {

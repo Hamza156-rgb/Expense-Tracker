@@ -209,23 +209,23 @@
             <div class="select-checkbox" *ngIf="bulkMode" (click)="toggleExpenseSelection(e)">
               <ion-icon [name]="selectedExpenseIds.includes(e.id || '') ? 'checkbox-outline' : 'square-outline'"></ion-icon>
             </div>
-            <div class="eico" [style.background]="getCategoryColor(e.categoryId) + '22'"
-              [style.color]="getCategoryColor(e.categoryId)">
-              <ion-icon [name]="getCategoryIcon(e.categoryId)"></ion-icon>
+            <div class="eico" [style.background]="e._catColor + '22'"
+              [style.color]="e._catColor">
+              <ion-icon [name]="e._catIcon"></ion-icon>
             </div>
              <div class="emid">
                <div class="etitle">{{ e.title }}</div>
                <div class="emeta">
-                 <span class="ecat" [style.background]="getCategoryColor(e.categoryId) + '20'"
-                   [style.color]="getCategoryColor(e.categoryId)">
-                   {{ getCategoryName(e.categoryId) }}
+                 <span class="ecat" [style.background]="e._catColor + '20'"
+                   [style.color]="e._catColor">
+                   {{ e._catName }}
                  </span>
-                 <span class="etime">{{ formatTime(e.date) }}</span>
+                 <span class="etime">{{ e._timeLabel }}</span>
                </div>
                <div class="enote" *ngIf="e.notes">{{ e.notes }}</div>
              </div>
             <div class="eright">
-              <div class="eamt">{{ formatCurrency(e.amount) }}</div>
+              <div class="eamt">{{ e._amountLabel }}</div>
             </div>
           </div>
         </ion-item>
