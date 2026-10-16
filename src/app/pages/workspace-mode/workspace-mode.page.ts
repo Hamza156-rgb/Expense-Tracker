@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { CategoryService } from '../../services/category.service';
+import { AccountMode, TourMember, WorkspaceScope } from '../../models/models';
+import { toWorkspaceId } from '../../utils/workspace.util';
 
 @Component({
   selector: 'app-workspace-mode',
@@ -11,10 +13,14 @@ import { CategoryService } from '../../services/category.service';
   styleUrls: ['./workspace-mode.page.scss']
 })
 export class WorkspaceModePage implements OnInit {
-  selectedMode: 'personal' | 'business' = 'personal';
+  selectedMode: AccountMode = 'personal';
   businessName = '';
   userId = '';
   existingBusinessWorkspaceId = '';
+  tourName = '';
+  existingTourWorkspaceId = '';
+  tourMembers: TourMember[] = [];
+  newMemberName = '';
 
   constructor(
     private authService: AuthService,
@@ -22,6 +28,7 @@ export class WorkspaceModePage implements OnInit {
     private router: Router,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
+    private alertCtrl: AlertController,
     private categoryService: CategoryService
   ) {}
 
@@ -45,6 +52,57 @@ export class WorkspaceModePage implements OnInit {
     if (data?.businessWorkspaceId) {
       this.existingBusinessWorkspaceId = data.businessWorkspaceId;
     }
+    if (data?.tourName) {
+      this.tourName = data.tourName;
+    }
+    if (data?.tourWorkspaceId) {
+      this.existingTourWorkspaceId = data.tourWorkspaceId;
+    }
+    if (Array.isArray(data?.tourMembers)) {
+      this.tourMembers = data.tourMembers;
+    } else if (data?.firstName) {
+      // Start a new tour with the user as its first member.
+      this.tourMembers = [{ id: this.newMemberId(), name: data.firstName }];
+    }
+  }
+
+  get modeLabel(): string {
+    if (this.selectedMode === 'business') return 'Business';
+    if (this.selectedMode === 'tour') return 'Tour';
+    return 'Personal';
+  }
+
+  addMember() {
+    const name = this.newMemberName.trim();
+    if (!name) return;
+    if (this.tourMembers.some(m => m.name.toLowerCase() === name.toLowerCase())) {
+      this.showToast('A member with this name already exists.', 'warning');
+      return;
+    }
+    this.tourMembers = [...this.tourMembers, { id: this.newMemberId(), name }];
+    this.newMemberName = '';
+  }
+
+  async removeMember(member: TourMember) {
+    const alert = await this.alertCtrl.create({
+      header: 'Remove Member',
+      message: `Remove ${member.name} from the tour? Expenses they already paid will keep their name.`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Remove',
+          role: 'destructive',
+          handler: () => {
+            this.tourMembers = this.tourMembers.filter(m => m.id !== member.id);
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  trackByMember(index: number, member: TourMember) {
+    return member.id;
   }
 
   async saveMode() {
@@ -53,6 +111,17 @@ export class WorkspaceModePage implements OnInit {
     if (this.selectedMode === 'business' && !this.businessName.trim()) {
       this.showToast('Please enter a shop name for business mode.', 'warning');
       return;
+    }
+
+    if (this.selectedMode === 'tour') {
+      if (!this.tourName.trim()) {
+        this.showToast('Please enter a tour name for tour mode.', 'warning');
+        return;
+      }
+      if (this.tourMembers.length === 0) {
+        this.showToast('Please add at least one tour member.', 'warning');
+        return;
+      }
     }
 
     const loading = await this.loadingCtrl.create({ message: 'Saving mode...' });
@@ -65,27 +134,23 @@ export class WorkspaceModePage implements OnInit {
         updatedAt: new Date()
       };
 
-      // Preserve business profile values when user temporarily switches to personal mode.
+      // Preserve business/tour profile values when user temporarily switches to another mode.
       if (this.selectedMode === 'business') {
-        const workspaceId = this.existingBusinessWorkspaceId || this.toWorkspaceId(shopName);
+        const workspaceId = this.existingBusinessWorkspaceId || toWorkspaceId('shop', shopName);
         payload.businessName = shopName;
         payload.businessWorkspaceId = workspaceId;
 
-        // Check if categories already exist for this business workspace
-        const categoriesRef = this.afs.collection('categories', ref =>
-          ref.where('userId', '==', this.userId)
-             .where('workspaceId', '==', workspaceId)
-             .limit(1)
-        );
-        const categoriesSnapshot = await categoriesRef.get().toPromise();
-        
-        if (categoriesSnapshot && categoriesSnapshot.empty) {
-          // No categories found, seed defaults for business
-          await this.categoryService.seedDefaultCategories(this.userId, {
-            workspaceType: 'business',
-            workspaceId: workspaceId
-          });
-        }
+        await this.seedCategoriesIfMissing({ workspaceType: 'business', workspaceId });
+      }
+
+      if (this.selectedMode === 'tour') {
+        const tourName = this.tourName.trim();
+        const workspaceId = this.existingTourWorkspaceId || toWorkspaceId('tour', tourName);
+        payload.tourName = tourName;
+        payload.tourWorkspaceId = workspaceId;
+        payload.tourMembers = this.tourMembers;
+
+        await this.seedCategoriesIfMissing({ workspaceType: 'tour', workspaceId });
       }
 
       await this.afs.doc(`users/${this.userId}`).set(payload, { merge: true });
@@ -108,11 +173,22 @@ export class WorkspaceModePage implements OnInit {
     await toast.present();
   }
 
-  private toWorkspaceId(input: string): string {
-    const slug = input
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return slug ? `shop-${slug}` : `shop-${Date.now()}`;
+  private async seedCategoriesIfMissing(scope: WorkspaceScope) {
+    // Check if categories already exist for this workspace
+    const categoriesRef = this.afs.collection('categories', ref =>
+      ref.where('userId', '==', this.userId)
+         .where('workspaceId', '==', scope.workspaceId)
+         .limit(1)
+    );
+    const categoriesSnapshot = await categoriesRef.get().toPromise();
+
+    if (categoriesSnapshot && categoriesSnapshot.empty) {
+      // No categories found, seed defaults for this workspace
+      await this.categoryService.seedDefaultCategories(this.userId, scope);
+    }
+  }
+
+  private newMemberId(): string {
+    return `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
   }
 }

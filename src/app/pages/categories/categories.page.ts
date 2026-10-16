@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { CategoryService } from '../../services/category.service';
-import { Category, User, WorkspaceScope } from '../../models/models';
+import { Category, User } from '../../models/models';
+import { getWorkspaceScope } from '../../utils/workspace.util';
 
 @Component({
   selector: 'app-categories',
@@ -48,7 +49,7 @@ export class CategoriesPage implements OnInit, OnDestroy {
       if (!user) return;
 
       this.userId = user.uid;
-      this.categoriesSub = this.categoryService.getCategories(user.uid, this.getWorkspaceScope(user)).subscribe(cats => {
+      this.categoriesSub = this.categoryService.getCategories(user.uid, getWorkspaceScope(user)).subscribe(cats => {
         this.categories = cats;
       });
     });
@@ -101,8 +102,8 @@ export class CategoriesPage implements OnInit, OnDestroy {
                   icon: this.availableIcons[Math.floor(Math.random() * 8)],
                   color: this.availableColors[Math.floor(Math.random() * this.availableColors.length)],
                   userId: this.userId,
-                  workspaceType: this.getWorkspaceScope(this.user).workspaceType,
-                  workspaceId: this.getWorkspaceScope(this.user).workspaceId,
+                  workspaceType: getWorkspaceScope(this.user).workspaceType,
+                  workspaceId: getWorkspaceScope(this.user).workspaceId,
                   isDefault: false,
                   createdAt: new Date()
                 };
@@ -185,21 +186,5 @@ export class CategoriesPage implements OnInit, OnDestroy {
     this.categoriesSub?.unsubscribe();
   }
 
-  private getWorkspaceScope(user: User | null): WorkspaceScope {
-    if (user?.accountMode === 'business') {
-      return {
-        workspaceType: 'business',
-        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
-      };
-    }
-    return { workspaceType: 'personal', workspaceId: 'personal' };
-  }
 
-  private toBusinessWorkspaceId(name?: string): string {
-    const slug = (name || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return slug ? `shop-${slug}` : 'shop-default';
-  }
 }

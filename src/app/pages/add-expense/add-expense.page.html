@@ -75,6 +75,44 @@
         <span class="error-text" *ngIf="expenseForm.get('categoryId')?.invalid && expenseForm.get('categoryId')?.touched">Please select a category</span>
       </div>
 
+      <!-- Tour: Paid By & Split -->
+      <ng-container *ngIf="isTourMode">
+        <div class="form-group">
+          <label class="form-label">
+            <ion-icon name="person-outline"></ion-icon>
+            Paid By *
+          </label>
+          <div class="member-chips" *ngIf="tourMembers.length > 0; else noMembers">
+            <button type="button" class="member-chip" *ngFor="let m of tourMembers"
+              [class.selected]="paidByMemberId === m.id" (click)="selectPaidBy(m.id)">
+              <span class="member-avatar">{{ m.name.charAt(0).toUpperCase() }}</span>
+              {{ m.name }}
+            </button>
+          </div>
+          <span class="error-text" *ngIf="showMemberErrors && tourMembers.length > 0 && !paidByMemberId">Please select who paid</span>
+        </div>
+
+        <div class="form-group" *ngIf="tourMembers.length > 0">
+          <label class="form-label">
+            <ion-icon name="people-outline"></ion-icon>
+            Split Between *
+            <span class="split-share" *ngIf="splitShareLabel">{{ splitShareLabel }}</span>
+          </label>
+          <div class="member-chips">
+            <button type="button" class="member-chip" *ngFor="let m of tourMembers"
+              [class.selected]="splitMemberIds.includes(m.id)" (click)="toggleSplitMember(m.id)">
+              <ion-icon [name]="splitMemberIds.includes(m.id) ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+              {{ m.name }}
+            </button>
+          </div>
+          <span class="error-text" *ngIf="showMemberErrors && splitMemberIds.length === 0">Select at least one member</span>
+        </div>
+
+        <ng-template #noMembers>
+          <div class="no-members">No tour members yet. Add members from Settings → Workspace Mode.</div>
+        </ng-template>
+      </ng-container>
+
       <!-- Date -->
       <div class="form-group">
         <label class="form-label">

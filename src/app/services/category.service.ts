@@ -66,7 +66,21 @@ export class CategoryService {
       { name: 'Other', icon: 'ellipsis-horizontal', color: '#64748b' },
     ];
 
-    const defaults = scope.workspaceType === 'business' ? businessDefaults : personalDefaults;
+    const tourDefaults = [
+      { name: 'Food & Dining', icon: 'restaurant', color: '#ef4444' },
+      { name: 'Travel', icon: 'airplane', color: '#f59e0b' },
+      { name: 'Hotel & Stay', icon: 'bed', color: '#8b5cf6' },
+      { name: 'Fuel', icon: 'car', color: '#3b82f6' },
+      { name: 'Tickets & Entry', icon: 'ticket', color: '#10b981' },
+      { name: 'Shopping', icon: 'bag-handle', color: '#f97316' },
+      { name: 'Activities', icon: 'camera', color: '#06b6d4' },
+      { name: 'Other', icon: 'ellipsis-horizontal', color: '#64748b' },
+    ];
+
+    const defaults =
+      scope.workspaceType === 'business' ? businessDefaults :
+      scope.workspaceType === 'tour' ? tourDefaults :
+      personalDefaults;
 
     const batch = this.afs.firestore.batch();
     defaults.forEach(cat => {

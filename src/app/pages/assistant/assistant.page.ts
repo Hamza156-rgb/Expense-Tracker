@@ -5,7 +5,8 @@ import { Router } from '@angular/router';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
 import { AIAssistantService, AssistantContextPayload } from '../../services/ai-assistant.service';
-import { Expense, Category, User, WorkspaceScope } from '../../models/models';
+import { Expense, Category, User } from '../../models/models';
+import { getWorkspaceScope } from '../../utils/workspace.util';
 
 interface ChatMessage {
   role: 'assistant' | 'user';
@@ -60,8 +61,8 @@ export class AssistantPage implements OnInit, OnDestroy {
       if (!user) return;
 
       this.dataSub = combineLatest([
-        this.expenseService.getExpenses(user.uid, this.getWorkspaceScope(user)),
-        this.categoryService.getCategories(user.uid, this.getWorkspaceScope(user))
+        this.expenseService.getExpenses(user.uid, getWorkspaceScope(user)),
+        this.categoryService.getCategories(user.uid, getWorkspaceScope(user))
       ]).subscribe(([expenses, categories]) => {
         this.expenses = expenses;
         this.categories = categories;
@@ -139,23 +140,7 @@ export class AssistantPage implements OnInit, OnDestroy {
     };
   }
 
-  private getWorkspaceScope(user: User): WorkspaceScope {
-    if (user.accountMode === 'business') {
-      return {
-        workspaceType: 'business',
-        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
-      };
-    }
-    return { workspaceType: 'personal', workspaceId: 'personal' };
-  }
 
-  private toBusinessWorkspaceId(name?: string): string {
-    const slug = (name || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return slug ? `shop-${slug}` : 'shop-default';
-  }
 
   goBack() {
     this.router.navigate(['/tabs/profile']);

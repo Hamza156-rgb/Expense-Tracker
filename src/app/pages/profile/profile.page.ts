@@ -5,7 +5,8 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { SettingsService } from '../../services/settings.service';
-import { User, Expense, WorkspaceScope } from '../../models/models';
+import { User, Expense } from '../../models/models';
+import { getAccountMode, getModeLabel, getWorkspaceScope } from '../../utils/workspace.util';
 import { ChangePasswordModalComponent } from './change-password-modal/change-password-modal.component';
 
 @Component({
@@ -49,7 +50,7 @@ export class ProfilePage implements OnInit, OnDestroy {
       if (user) {
         this.updateBudgetFromUser(user);
         this.expenseSub = this.expenseService
-          .getExpenses(user.uid, this.getWorkspaceScope(user))
+          .getExpenses(user.uid, getWorkspaceScope(user))
           .subscribe(expenses => this.calculateStats(expenses));
       } else {
         this.budget = null;
@@ -123,38 +124,28 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   get modeLabel(): string {
-    return this.user?.accountMode === 'business' ? 'Business' : 'Personal';
+    return getModeLabel(this.user);
   }
 
   get modeSubLabel(): string {
     if (this.user?.accountMode === 'business') {
       return this.user?.businessName?.trim() || 'Shop Mode';
     }
+    if (this.user?.accountMode === 'tour') {
+      const members = this.user?.tourMembers?.length || 0;
+      return `${this.user?.tourName?.trim() || 'Tour Mode'} • ${members} member${members === 1 ? '' : 's'}`;
+    }
     return 'Private Expense Tracking';
   }
 
-  private getWorkspaceScope(user: User): WorkspaceScope {
-    if (user.accountMode === 'business') {
-      return {
-        workspaceType: 'business',
-        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
-      };
-    }
-    return { workspaceType: 'personal', workspaceId: 'personal' };
-  }
 
-  private toBusinessWorkspaceId(name?: string): string {
-    const slug = (name || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return slug ? `shop-${slug}` : 'shop-default';
-  }
 
   // Budget-related methods
   private updateBudgetFromUser(user: User) {
     if (user.accountMode === 'business') {
       this.budget = user.businessBudget || null;
+    } else if (user.accountMode === 'tour') {
+      this.budget = user.tourBudget || null;
     } else {
       this.budget = user.personalBudget || null;
     }
@@ -195,7 +186,7 @@ export class ProfilePage implements OnInit, OnDestroy {
       await loading.present();
       try {
         const uid = this.user?.uid;
-        const mode = this.user?.accountMode === 'business' ? 'business' : 'personal';
+        const mode = getAccountMode(this.user);
         if (uid) {
           await this.authService.updateUserBudget(uid, this.budgetInput, mode);
           this.budget = this.budgetInput;
@@ -228,7 +219,7 @@ export class ProfilePage implements OnInit, OnDestroy {
             await loading.present();
             try {
               const uid = this.user?.uid;
-              const mode = this.user?.accountMode === 'business' ? 'business' : 'personal';
+              const mode = getAccountMode(this.user);
               if (uid) {
                 await this.authService.updateUserBudget(uid, null, mode);
                 this.budget = null;

@@ -4,7 +4,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Router } from '@angular/router';
 import { Observable, from, of, firstValueFrom } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
-import { User } from '../models/models';
+import { AccountMode, User } from '../models/models';
 import { CategoryService } from './category.service';
 
 @Injectable({ providedIn: 'root' })
@@ -70,8 +70,8 @@ export class AuthService {
     await this.router.navigate(['/login']);
   }
 
-  async updateUserBudget(userId: string, budget: number | null, mode: 'personal' | 'business'): Promise<void> {
-    const field = mode === 'business' ? 'businessBudget' : 'personalBudget';
+  async updateUserBudget(userId: string, budget: number | null, mode: AccountMode): Promise<void> {
+    const field = mode === 'business' ? 'businessBudget' : mode === 'tour' ? 'tourBudget' : 'personalBudget';
     await this.afs.doc(`users/${userId}`).update({ [field]: budget });
   }
 

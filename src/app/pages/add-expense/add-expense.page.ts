@@ -5,7 +5,8 @@ import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
-import { Category, Expense, User, WorkspaceScope } from '../../models/models';
+import { Category, Expense, TourMember, User } from '../../models/models';
+import { getWorkspaceScope } from '../../utils/workspace.util';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { SettingsService } from '../../services/settings.service';
@@ -23,6 +24,11 @@ export class AddExpensePage implements OnInit, OnDestroy {
   isEditMode = false;
   today: string;
   suggestedCategory: Category | null = null;
+  isTourMode = false;
+  tourMembers: TourMember[] = [];
+  paidByMemberId = '';
+  splitMemberIds: string[] = [];
+  showMemberErrors = false;
   private titleSub?: Subscription;
   private authSub?: Subscription;
   private categoriesSub?: Subscription;
@@ -61,8 +67,9 @@ export class AddExpensePage implements OnInit, OnDestroy {
       this.categories = [];
       if (!user) return;
       this.userId = user.uid;
+      this.setTourMembers(user);
 
-      this.categoriesSub = this.categoryService.getCategories(user.uid, this.getWorkspaceScope(user)).subscribe(cats => {
+      this.categoriesSub = this.categoryService.getCategories(user.uid, getWorkspaceScope(user)).subscribe(cats => {
         this.categories = cats;
         this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
       });
@@ -95,9 +102,50 @@ export class AddExpensePage implements OnInit, OnDestroy {
     });
   }
 
+  private setTourMembers(user: User) {
+    this.isTourMode = getWorkspaceScope(user).workspaceType === 'tour';
+    this.tourMembers = this.isTourMode ? (user.tourMembers || []) : [];
+    if (!this.isTourMode) return;
+
+    const memberIds = this.tourMembers.map(m => m.id);
+    // Drop selections for members that were removed from the tour.
+    this.splitMemberIds = this.splitMemberIds.filter(id => memberIds.includes(id));
+    if (this.paidByMemberId && !memberIds.includes(this.paidByMemberId) && !this.isEditMode) {
+      this.paidByMemberId = '';
+    }
+    if (!this.isEditMode && this.splitMemberIds.length === 0) {
+      this.splitMemberIds = [...memberIds];
+    }
+  }
+
+  selectPaidBy(memberId: string) {
+    this.paidByMemberId = memberId;
+  }
+
+  toggleSplitMember(memberId: string) {
+    this.splitMemberIds = this.splitMemberIds.includes(memberId)
+      ? this.splitMemberIds.filter(id => id !== memberId)
+      : [...this.splitMemberIds, memberId];
+  }
+
+  get splitShareLabel(): string {
+    const amount = Number(this.expenseForm.get('amount')?.value) || 0;
+    const count = this.splitMemberIds.length;
+    if (!amount || !count) return '';
+    return `${this.settingsService.formatCurrency(amount / count)} each`;
+  }
+
+  private get tourSelectionValid(): boolean {
+    return !this.isTourMode || this.tourMembers.length === 0 ||
+      (!!this.paidByMemberId && this.splitMemberIds.length > 0);
+  }
+
   private resetForm() {
     this.editId = null;
     this.isEditMode = false;
+    this.paidByMemberId = '';
+    this.splitMemberIds = this.tourMembers.map(m => m.id);
+    this.showMemberErrors = false;
     this.expenseForm.reset({
       title: '',
       amount: '',
@@ -139,7 +187,7 @@ export class AddExpensePage implements OnInit, OnDestroy {
     await loading.present();
     this.loadExpenseSub?.unsubscribe();
     this.loadExpenseSub = this.expenseService
-      .getExpenses(this.userId, this.getWorkspaceScope(this.currentUser!))
+      .getExpenses(this.userId, getWorkspaceScope(this.currentUser!))
       .subscribe(expenses => {
         const expense = expenses.find(e => e.id === id);
         if (expense) {
@@ -153,6 +201,10 @@ export class AddExpensePage implements OnInit, OnDestroy {
             date: this.formatToDateInput(expense.date),
             notes: expense.notes || ''
           });
+          this.paidByMemberId = expense.paidByMemberId || '';
+          this.splitMemberIds = expense.splitMemberIds?.length
+            ? [...expense.splitMemberIds]
+            : this.tourMembers.map(m => m.id);
           this.updateSuggestionFromTitle(this.expenseForm.get('title')?.value || '');
         }
         loading.dismiss();
@@ -170,8 +222,9 @@ export class AddExpensePage implements OnInit, OnDestroy {
   }
 
   async onSubmit() {
-    if (this.expenseForm.invalid) {
+    if (this.expenseForm.invalid || !this.tourSelectionValid) {
       this.expenseForm.markAllAsTouched();
+      this.showMemberErrors = true;
       return;
     }
 
@@ -206,9 +259,16 @@ export class AddExpensePage implements OnInit, OnDestroy {
         date: localDate,
         notes: notes.trim(),
         userId: this.userId,
-        workspaceType: this.getWorkspaceScope(this.currentUser).workspaceType,
-        workspaceId: this.getWorkspaceScope(this.currentUser).workspaceId
+        workspaceType: getWorkspaceScope(this.currentUser).workspaceType,
+        workspaceId: getWorkspaceScope(this.currentUser).workspaceId
       };
+
+      if (this.isTourMode && this.paidByMemberId) {
+        const paidBy = this.tourMembers.find(m => m.id === this.paidByMemberId);
+        expenseData.paidByMemberId = this.paidByMemberId;
+        expenseData.paidByName = paidBy?.name || '';
+        expenseData.splitMemberIds = [...this.splitMemberIds];
+      }
 
       if (this.isEditMode && this.editId) {
         await this.expenseService.updateExpense(this.editId, expenseData);
@@ -288,23 +348,7 @@ export class AddExpensePage implements OnInit, OnDestroy {
     this.suggestedCategory = null;
   }
 
-  private getWorkspaceScope(user: User | null): WorkspaceScope {
-    if (user?.accountMode === 'business') {
-      return {
-        workspaceType: 'business',
-        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
-      };
-    }
-    return { workspaceType: 'personal', workspaceId: 'personal' };
-  }
 
-  private toBusinessWorkspaceId(name?: string): string {
-    const slug = (name || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return slug ? `shop-${slug}` : 'shop-default';
-  }
 
   get currencyCode(): string {
     return this.settingsService.getCurrentCurrency().code;

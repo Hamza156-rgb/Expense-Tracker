@@ -195,6 +195,11 @@ export class ExpenseService {
             userId: data.userId ?? '',
             workspaceType: data.workspaceType ?? 'personal',
             workspaceId: data.workspaceId ?? 'personal',
+            ...(data.paidByMemberId ? {
+              paidByMemberId: data.paidByMemberId,
+              paidByName: data.paidByName ?? '',
+              splitMemberIds: data.splitMemberIds ?? []
+            } : {}),
             createdAt: this.parseFirestoreDate(data.createdAt)
           } as Expense;
         })

@@ -6,7 +6,8 @@ import { AuthService } from '../../services/auth.service';
 import { ExpenseService } from '../../services/expense.service';
 import { CategoryService } from '../../services/category.service';
 import { ExportService } from '../../services/export.service';
-import { Expense, Category, ExpenseFilter, User, WorkspaceScope } from '../../models/models';
+import { Expense, Category, ExpenseFilter, User } from '../../models/models';
+import { getAccountMode, getModeLabel, getWorkspaceScope } from '../../utils/workspace.util';
 import { SettingsService } from '../../services/settings.service';
 
 // Precomputed display fields so the expense list template binds plain
@@ -18,6 +19,24 @@ interface ExpenseRow extends Expense {
   _catIcon: string;
   _amountLabel: string;
   _timeLabel: string;
+  _paidByLabel: string;
+}
+
+interface TourBalance {
+  id: string;
+  name: string;
+  paid: number;
+  share: number;
+  balance: number;
+  _paidLabel: string;
+  _shareLabel: string;
+  _balanceLabel: string;
+}
+
+interface TourSettlement {
+  from: string;
+  to: string;
+  _amountLabel: string;
 }
 
 @Component({
@@ -67,6 +86,11 @@ export class DashboardPage implements OnInit, OnDestroy {
   allTimeSparkline: number[] = [];
   todaySparkline: number[] = [];
   monthSparkline: number[] = [];
+
+  // Tour mode: per-member balances and who-pays-whom
+  tourBalances: TourBalance[] = [];
+  tourSettlements: TourSettlement[] = [];
+  showTourSummary = true;
 
   // Budget-related properties
   budget: number | null = null;
@@ -289,7 +313,14 @@ export class DashboardPage implements OnInit, OnDestroy {
     if (this.user?.accountMode === 'business') {
       return `Business • ${this.user.businessName || 'Shop'}`;
     }
+    if (this.user?.accountMode === 'tour') {
+      return `Tour • ${this.user.tourName || 'Trip'}`;
+    }
     return 'Personal Mode';
+  }
+
+  get isTourMode(): boolean {
+    return getAccountMode(this.user) === 'tour';
   }
 
   trackByGroup(index: number, group: { dateLabel: string }) {
@@ -309,7 +340,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.totalAmount = 0;
     this.todayAmount = 0;
     this.monthAmount = 0;
-    const scope = this.getWorkspaceScope(this.user);
+    const scope = getWorkspaceScope(this.user);
     this.dataSub = combineLatest([
       this.expenseService.getExpenses(userId, scope),
       this.categoryService.getCategories(userId, scope)
@@ -375,7 +406,8 @@ export class DashboardPage implements OnInit, OnDestroy {
         _catColor: cat?.color || '#64748b',
         _catIcon: cat?.icon || 'ellipsis-horizontal',
         _amountLabel: this.formatCurrency(e.amount),
-        _timeLabel: this.formatTime(e.date)
+        _timeLabel: this.formatTime(e.date),
+        _paidByLabel: e.paidByMemberId ? this.getMemberName(e.paidByMemberId, e.paidByName) : ''
       });
     });
     this.groupedExpenses = dateOrder.map(dateLabel => ({
@@ -385,7 +417,78 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     this.filterActive = this.selectedCategoryIds.length > 0 || !!this.startDateStr || !!this.endDateStr;
     this.totalAmount = filtered.reduce((sum, e) => sum + e.amount, 0);
+    this.updateTourSummary();
     this.updateAIInsights();
+  }
+
+  // Balances are computed over the filtered list so date/category filters
+  // apply to the tour summary too.
+  private updateTourSummary() {
+    this.tourBalances = [];
+    this.tourSettlements = [];
+    if (!this.isTourMode) return;
+
+    const members = this.user?.tourMembers || [];
+    const allMemberIds = members.map(m => m.id);
+    const totals = new Map<string, { name: string; paid: number; share: number }>();
+    members.forEach(m => totals.set(m.id, { name: m.name, paid: 0, share: 0 }));
+
+    const ensure = (id: string, fallbackName?: string) => {
+      if (!totals.has(id)) {
+        totals.set(id, { name: this.getMemberName(id, fallbackName), paid: 0, share: 0 });
+      }
+      return totals.get(id)!;
+    };
+
+    this.filteredExpenses.forEach(e => {
+      if (!e.paidByMemberId) return;
+      ensure(e.paidByMemberId, e.paidByName).paid += e.amount;
+
+      const splitIds = e.splitMemberIds?.length ? e.splitMemberIds : allMemberIds;
+      if (splitIds.length === 0) return;
+      const each = e.amount / splitIds.length;
+      splitIds.forEach(id => ensure(id).share += each);
+    });
+
+    this.tourBalances = Array.from(totals.entries()).map(([id, t]) => {
+      const balance = Math.round((t.paid - t.share) * 100) / 100;
+      return {
+        id,
+        name: t.name,
+        paid: t.paid,
+        share: t.share,
+        balance,
+        _paidLabel: this.formatCurrency(t.paid),
+        _shareLabel: this.formatCurrency(t.share),
+        _balanceLabel: (balance > 0 ? '+' : balance < 0 ? '-' : '') + this.formatCurrency(Math.abs(balance))
+      };
+    });
+
+    // Greedy settle-up: largest debtor pays largest creditor.
+    const creditors = this.tourBalances.filter(b => b.balance > 0.009).map(b => ({ name: b.name, amt: b.balance }))
+      .sort((a, b) => b.amt - a.amt);
+    const debtors = this.tourBalances.filter(b => b.balance < -0.009).map(b => ({ name: b.name, amt: -b.balance }))
+      .sort((a, b) => b.amt - a.amt);
+    let i = 0;
+    let j = 0;
+    while (i < debtors.length && j < creditors.length) {
+      const amt = Math.min(debtors[i].amt, creditors[j].amt);
+      if (amt > 0.009) {
+        this.tourSettlements.push({ from: debtors[i].name, to: creditors[j].name, _amountLabel: this.formatCurrency(amt) });
+      }
+      debtors[i].amt -= amt;
+      creditors[j].amt -= amt;
+      if (debtors[i].amt <= 0.009) i++;
+      if (creditors[j].amt <= 0.009) j++;
+    }
+  }
+
+  private getMemberName(id: string, fallbackName?: string): string {
+    return this.user?.tourMembers?.find(m => m.id === id)?.name || fallbackName || 'Former member';
+  }
+
+  trackByBalance(index: number, b: TourBalance) {
+    return b.id;
   }
 
   calculateStats() {
@@ -414,6 +517,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   private updateBudgetFromUser(user: User) {
     if (user.accountMode === 'business') {
       this.budget = user.businessBudget || null;
+    } else if (user.accountMode === 'tour') {
+      this.budget = user.tourBudget || null;
     } else {
       this.budget = user.personalBudget || null;
     }
@@ -861,9 +966,10 @@ export class DashboardPage implements OnInit, OnDestroy {
         `${this.user?.firstName || ''} ${this.user?.lastName || ''}`,
         action,
         {
-          workspaceType: this.user?.accountMode === 'business' ? 'business' : 'personal',
-          workspaceLabel: this.user?.accountMode === 'business' ? 'Business' : 'Personal',
-          shopName: this.user?.businessName || undefined
+          workspaceType: getAccountMode(this.user),
+          workspaceLabel: getModeLabel(this.user),
+          shopName: this.user?.businessName || undefined,
+          tourName: this.user?.tourName || undefined
         }
       );
 
@@ -959,21 +1065,5 @@ export class DashboardPage implements OnInit, OnDestroy {
     return map[this.activeQuickDateFilter] || 'All Time';
   }
 
-  private getWorkspaceScope(user: User | null): WorkspaceScope {
-    if (user?.accountMode === 'business') {
-      return {
-        workspaceType: 'business',
-        workspaceId: user.businessWorkspaceId || this.toBusinessWorkspaceId(user.businessName)
-      };
-    }
-    return { workspaceType: 'personal', workspaceId: 'personal' };
-  }
 
-  private toBusinessWorkspaceId(name?: string): string {
-    const slug = (name || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    return slug ? `shop-${slug}` : 'shop-default';
-  }
 }

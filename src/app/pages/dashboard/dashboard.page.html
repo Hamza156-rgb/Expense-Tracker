@@ -159,6 +159,44 @@
     </button>
   </div>
 
+  <!-- TOUR SUMMARY -->
+  <div class="tour-summary" *ngIf="isTourMode && !isLoading">
+    <button type="button" class="ts-head" (click)="showTourSummary = !showTourSummary">
+      <div class="ts-head-text">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>Members &amp; Balances</span>
+        <span class="lhdr-count">{{ tourBalances.length }}</span>
+      </div>
+      <ion-icon [name]="showTourSummary ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    </button>
+
+    <ng-container *ngIf="showTourSummary">
+      <div class="ts-empty" *ngIf="tourBalances.length === 0">
+        Add tour members from Settings → Workspace Mode.
+      </div>
+
+      <div class="ts-row" *ngFor="let b of tourBalances; trackBy: trackByBalance">
+        <span class="ts-avatar">{{ b.name.charAt(0).toUpperCase() }}</span>
+        <div class="ts-mid">
+          <div class="ts-name">{{ b.name }}</div>
+          <div class="ts-meta">Paid {{ b._paidLabel }} • Share {{ b._shareLabel }}</div>
+        </div>
+        <div class="ts-bal" [class.pos]="b.balance > 0" [class.neg]="b.balance < 0">
+          {{ b._balanceLabel }}
+          <span class="ts-bal-lbl">{{ b.balance > 0 ? 'gets back' : b.balance < 0 ? 'owes' : 'settled' }}</span>
+        </div>
+      </div>
+
+      <div class="ts-settle" *ngIf="tourSettlements.length > 0">
+        <div class="ts-settle-title">Settle Up</div>
+        <div class="ts-settle-row" *ngFor="let s of tourSettlements">
+          <span><strong>{{ s.from }}</strong> pays <strong>{{ s.to }}</strong></span>
+          <span class="ts-settle-amt">{{ s._amountLabel }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
   <!-- LIST HEADER -->
   <div class="lhdr">
     <div class="lhdr-text">
@@ -221,6 +259,7 @@
                    {{ e._catName }}
                  </span>
                  <span class="etime">{{ e._timeLabel }}</span>
+                 <span class="epaid" *ngIf="e._paidByLabel">Paid by {{ e._paidByLabel }}</span>
                </div>
                <div class="enote" *ngIf="e.notes">{{ e.notes }}</div>
              </div>

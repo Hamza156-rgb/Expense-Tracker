@@ -132,7 +132,7 @@
       </button>
     </div>
     <div class="modal-body">
-      <p class="modal-desc">Enter your monthly {{ user?.accountMode === 'business' ? 'business' : 'personal' }} budget to track your spending progress.</p>
+      <p class="modal-desc">Enter your monthly {{ modeLabel | lowercase }} budget to track your spending progress.</p>
       <div class="budget-input-wrap">
         <input 
           type="number" 

@@ -1,4 +1,5 @@
-export type WorkspaceType = 'personal' | 'business';
+export type WorkspaceType = 'personal' | 'business' | 'tour';
+export type AccountMode = WorkspaceType;
 
 export interface WorkspaceScope {
   workspaceType: WorkspaceType;
@@ -12,11 +13,21 @@ export interface User {
   lastName: string;
   email: string;
   createdAt: Date;
-  accountMode?: 'personal' | 'business';
+  accountMode?: AccountMode;
   businessName?: string;
   businessWorkspaceId?: string;
+  tourName?: string;
+  tourWorkspaceId?: string;
+  tourMembers?: TourMember[];
   personalBudget?: number; // Monthly budget for personal mode
   businessBudget?: number; // Monthly budget for business mode
+  tourBudget?: number; // Monthly budget for tour mode
+}
+
+// Tour member (a person sharing tour expenses; not necessarily an app user)
+export interface TourMember {
+  id: string;
+  name: string;
 }
 
 // Category Model
@@ -46,6 +57,9 @@ export interface Expense {
   userId: string;
   workspaceType?: WorkspaceType;
   workspaceId?: string;
+  paidByMemberId?: string; // Tour mode: member who paid
+  paidByName?: string;
+  splitMemberIds?: string[]; // Tour mode: members sharing the cost (empty = all members)
   createdAt: Date;
 }
 

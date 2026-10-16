@@ -6,13 +6,13 @@
       </button>
       <div class="wm-topbar-text">
         <h1>Choose Account Mode</h1>
-        <p>Switch between personal and shop expense workspace</p>
+        <p>Switch between personal, shop and tour expense workspace</p>
       </div>
     </div>
 
     <div class="wm-current">
       <span class="wm-current-label">Current Selection</span>
-      <span class="wm-current-pill">{{ selectedMode === 'business' ? 'Business' : 'Personal' }}</span>
+      <span class="wm-current-pill">{{ modeLabel }}</span>
     </div>
   </div>
 
@@ -40,11 +40,50 @@
       <div class="wm-title">Business (Shop)</div>
       <div class="wm-sub">Manage shop expenses and growth.</div>
     </button>
+
+    <button type="button" class="wm-card" [class.active]="selectedMode === 'tour'"
+      (click)="selectedMode = 'tour'">
+      <div class="wm-card-head">
+        <ion-icon name="airplane-outline"></ion-icon>
+        <span class="wm-check" *ngIf="selectedMode === 'tour'">
+          <ion-icon name="checkmark-circle"></ion-icon>
+        </span>
+      </div>
+      <div class="wm-title">Tour (Group Trip)</div>
+      <div class="wm-sub">Add members and split trip expenses.</div>
+    </button>
   </div>
 
   <div class="wm-form" *ngIf="selectedMode === 'business'">
     <label>Shop Name</label>
     <input type="text" [(ngModel)]="businessName" placeholder="e.g. Abc Store" />
+  </div>
+
+  <div class="wm-form" *ngIf="selectedMode === 'tour'">
+    <label>Tour Name</label>
+    <input type="text" [(ngModel)]="tourName" placeholder="e.g. Murree Trip" />
+
+    <label class="wm-members-label">Members ({{ tourMembers.length }})</label>
+    <div class="wm-member-add">
+      <input type="text" [(ngModel)]="newMemberName" placeholder="Member name"
+        (keyup.enter)="addMember()" />
+      <button type="button" class="wm-member-add-btn" (click)="addMember()" [disabled]="!newMemberName.trim()"
+        aria-label="Add member">
+        <ion-icon name="person-add-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="wm-member-list">
+      <div class="wm-member" *ngFor="let member of tourMembers; trackBy: trackByMember">
+        <span class="wm-member-avatar">{{ member.name.charAt(0).toUpperCase() }}</span>
+        <span class="wm-member-name">{{ member.name }}</span>
+        <button type="button" class="wm-member-remove" (click)="removeMember(member)"
+          [attr.aria-label]="'Remove ' + member.name">
+          <ion-icon name="close-circle-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="wm-member-empty" *ngIf="tourMembers.length === 0">No members yet. Add the people on this tour.</div>
+    </div>
   </div>
 
   <div class="wm-actions">

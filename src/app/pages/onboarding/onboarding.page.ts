@@ -28,8 +28,8 @@ export class OnboardingPage {
     },
     {
       icon: 'briefcase-outline',
-      title: 'Personal & business',
-      text: 'Switch between personal and business workspaces, each with its own categories.'
+      title: 'Personal, business & tour',
+      text: 'Switch between personal, business and tour workspaces, each with its own categories. Split tour costs with your group.'
     }
   ];
 

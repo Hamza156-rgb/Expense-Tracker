@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Expense, ExpenseFilter } from '../models/models';
+import { Expense, ExpenseFilter, WorkspaceType } from '../models/models';
 import { SettingsService } from './settings.service';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core'
 
 interface ExportReportMeta {
-  workspaceType?: 'personal' | 'business';
+  workspaceType?: WorkspaceType;
   workspaceLabel?: string;
   shopName?: string;
+  tourName?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -333,6 +334,9 @@ export class ExportService {
     if (meta?.workspaceType === 'business') {
       return `Business${meta.shopName ? ` - ${meta.shopName}` : ''}`;
     }
+    if (meta?.workspaceType === 'tour') {
+      return `Tour${meta.tourName ? ` - ${meta.tourName}` : ''}`;
+    }
     return meta?.workspaceLabel || 'Personal';
   }
 
@@ -344,10 +348,18 @@ export class ExportService {
         .replace(/^-+|-+$/g, '');
       return `business-${shop || 'shop'}`;
     }
+    if (meta?.workspaceType === 'tour') {
+      const tour = (meta.tourName || 'tour')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      return `tour-${tour || 'tour'}`;
+    }
     return 'personal';
   }
 
   private getWorkspaceShareTitle(meta?: ExportReportMeta): string {
+    if (meta?.workspaceType === 'tour') return 'Tour';
     return meta?.workspaceType === 'business' ? 'Business' : 'Personal';
   }
 }
